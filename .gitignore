@@ -1,0 +1,4 @@
+# 스킬 테스트 실행 결과 (로컬 전용)
+*-workspace/
+evals/results/
+__pycache__/

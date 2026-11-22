@@ -1,0 +1,12 @@
+{
+  "name": "mskim-claude-plugins",
+  "owner": { "name": "HomebodyDevil" },
+  "metadata": { "description": "mskim 개인 Claude Code 플러그인 모음" },
+  "plugins": [
+    {
+      "name": "mskim",
+      "source": "./mskim",
+      "description": "mskim 개인 스킬 모음 (/mskim:<skill>)"
+    }
+  ]
+}
