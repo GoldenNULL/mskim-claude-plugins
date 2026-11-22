@@ -1,125 +1,125 @@
 ---
 name: instruction
-description: 기능 추가, 버그 수정, 분석 같은 작업을 현재 세션이나 다른 세션·에이전트가 원활하고 명확하게 수행하도록 작업 지침서(Markdown 파일)를 만들고, 그 지침서와 함께 넘길 작업 지시문(프롬프트)을 응답 마지막에 제공한다. 사용자가 "작업 지침서", "지침서", "작업 지시문", "지시문", "handoff", "인수인계", "다른 세션에 넘길 프롬프트", "brief"를 언급하거나, 지금까지의 작업·논의를 정리해 다른 작업자가 이어받게 하려 할 때는 이름을 직접 말하지 않아도 반드시 이 스킬을 사용한다.
-argument-hint: "[작업 지침서를 만들기 위한 내용]"
+description: Creates a task instruction document (a Markdown file) so that the current session or another session/agent can carry out work such as adding a feature, fixing a bug, or analysis smoothly and clearly, and provides a task prompt to hand over with that document at the end of the response. Always use this skill when the user mentions "작업 지침서", "지침서", "작업 지시문", "지시문", "instruction document", "handoff", "인수인계", "a prompt to hand to another session", or "brief", or when they want to summarize the work and discussion so far so another worker can pick it up, even if they do not name the skill directly.
+argument-hint: "[content for building the task instruction document]"
 ---
 
-# 작업 지침서 + 작업 지시문 작성
+# Writing a Task Instruction Document + Task Prompt
 
-입력: $ARGUMENTS
+Input: $ARGUMENTS
 
-## 목적
+## Purpose
 
-이 스킬의 결과물은 **실제 작업(기능 추가, 버그 수정, 분석 등)을 하기 위한 준비물**이다. 지금 세션이 이어서 하든, 다른 세션이나 에이전트가 맡든, 작업자가 이 문서만 보고 헤매지 않고 바로 올바르게 착수할 수 있어야 한다.
+The output of this skill is **preparation for doing the actual work (adding a feature, fixing a bug, analysis, etc.)**. Whether the current session continues, or another session or agent takes over, the worker must be able to start correctly right away from this document alone, without getting lost.
 
-결과물은 항상 두 가지다.
+The output is always two things.
 
-1. **작업 지침서**: 작업에 필요한 모든 맥락과 기준을 담은 Markdown 파일.
-2. **작업 지시문**: 그 지침서와 함께 세션·에이전트에 넘길 짧은 프롬프트. 응답의 **맨 마지막**에 코드 블록으로 준다.
+1. **Task instruction document**: a Markdown file containing all the context and criteria the work needs.
+2. **Task prompt**: a short prompt to hand to a session or agent together with that document. Give it as a code block at the **very end** of the response.
 
-지침서가 "무엇을, 왜, 어떤 기준으로"를 담는 본체라면, 지시문은 "이 지침서를 읽고 이렇게 시작하라"는 출발 신호다. 지시문에 지침서 내용을 다시 옮겨 적지 않는다. 내용이 두 곳에 있으면 한쪽만 고쳐지면서 서로 어긋나기 때문이다.
+The document is the body that holds "what, why, and by what criteria"; the prompt is the starting signal that says "read this document and start like this." Do not copy the document's content into the prompt again. When content lives in two places, only one side gets updated and the two drift apart.
 
-## 1. 맥락 모으기
+## 1. Gather context
 
-읽는 사람은 이 대화를 모르고 질문할 수도 없다고 가정한다. 확인한 사실만 쓴다. 그래야 받는 쪽이 문서를 믿고 움직일 수 있다.
+Assume the reader does not know this conversation and cannot ask questions. Write only facts you have verified. That way the receiving side can trust the document and act on it.
 
-- 입력이나 대화에 나온 파일·폴더·코드·문서는 직접 열어 보고 실제 경로, 이름, 현재 상태를 적는다.
-- 대화에서 이미 결정된 사항, 시도했다가 버린 방법과 그 이유, 사용자의 교정은 빠짐없이 옮긴다. 받는 쪽이 같은 실수를 되풀이하지 않게 해 주는 핵심 정보다.
-- 확인하지 못한 것은 지어내지 말고 `확인 필요`로 표시한다.
+- Open any files, folders, code, or documents mentioned in the input or conversation yourself, and record their actual paths, names, and current state.
+- Carry over, without omission, decisions already made in the conversation, approaches tried and abandoned along with the reasons, and the user's corrections. This is the key information that keeps the receiving side from repeating the same mistakes.
+- Do not make up anything you could not verify; mark it `needs verification`.
 
-## 2. 애매한 점 검토와 질문
+## 2. Review ambiguities and ask questions
 
-지침서를 쓰기 전에, 모은 맥락에서 애매하거나 빠진 부분을 목록으로 뽑고 각각을 둘로 나눈다. 잘못된 해석 위에 쓴 지침서는 받는 쪽을 엉뚱한 방향으로 정확하게 이끌기 때문에, 이 검토를 건너뛰지 않는다.
+Before writing the document, list the parts of the gathered context that are ambiguous or missing, and sort each into one of two groups. A document written on a wrong interpretation leads the receiving side precisely in the wrong direction, so do not skip this review.
 
-- **사용자만 정할 수 있는 것**: 요구사항의 해석, 목표와 우선순위, 범위, 동작 방식의 선택(예: 차단할지 기록만 할지), 대상 경로처럼 코드나 문서를 봐도 알 수 없는 사실. 답에 따라 지침서의 설계나 범위가 달라진다.
-- **받는 쪽이 스스로 확인할 수 있는 것**: 라이브러리 버전, 파일 구조, 빌드 명령처럼 코드·문서·도구를 보면 알 수 있는 것. 사용자에게 묻지 않고 지침서에 `확인 필요`와 확인 방법을 적는다.
+- **Things only the user can decide**: interpretation of requirements, goals and priorities, scope, choice of behavior (e.g., block it or only log it), and facts you cannot learn from code or documents, such as a target path. The answer changes the document's design or scope.
+- **Things the receiving side can check on its own**: things you can learn by looking at code, documents, or tools, such as library versions, file structure, or build commands. Do not ask the user; write `needs verification` and how to verify it in the document.
 
-사용자만 정할 수 있는 항목이 있으면 **지침서를 쓰기 전에 사용자에게 묻는다.**
+If there are items only the user can decide, **ask the user before writing the document.**
 
-- 질문 도구(예: `AskUserQuestion`)가 있으면 그것을 쓰고, 없으면 응답에 질문을 적고 답을 기다린다.
-- 한 번에, 답이 지침서를 가장 크게 바꾸는 것부터 최대 4개까지 묻는다. 각 질문에는 구체적인 선택지와 추천안을 붙여 쉽게 고를 수 있게 하되, 선택지는 예시일 뿐이고 사용자는 선택지에 없는 답을 직접 적을 수 있어야 한다. 사용자의 실제 의도가 선택지 밖에 있을 수 있기 때문이다.
-  - `AskUserQuestion`은 직접 입력 칸("Other")을 자동으로 붙이므로 선택지에 따로 넣지 않는다.
-  - 도구 없이 응답에 질문을 적을 때는 각 질문 끝에 "직접 입력: 다른 생각이 있으면 자유롭게 적어 주세요" 같은 항목을 둔다.
-- 사용자가 직접 적은 답은 선택지보다 우선해 그대로 반영한다. 기존 선택지와 섞인 답(예: "A인데 이 부분만 다르게")이면 섞인 그대로 반영한다.
-- 이미 입력이나 자료에 답이 있는 것은 묻지 않는다. 질문이 많으면 사용자는 스킬을 쓰기 귀찮아진다.
-- 답을 받으면 지침서에 확정 사항으로 반영한다. 사용자가 "알아서 해" 같이 답하면 추천안으로 정하고 지침서에 가정으로 적는다.
-- 사용자만 정할 수 있는 항목이 없으면 묻지 않고 바로 작성한다.
+- If a question tool (e.g., `AskUserQuestion`) is available, use it; otherwise write the questions in the response and wait for answers.
+- Ask at most 4 at once, starting with the ones whose answers change the document the most. Attach concrete options and a recommendation to each question so the choice is easy, but the options are only examples and the user must be able to write an answer that is not among them. The user's real intent may lie outside the options.
+  - `AskUserQuestion` automatically adds a free-text field ("Other"), so do not add one to the options yourself.
+  - When writing questions in the response without a tool, end each question with an item such as "Your own answer: feel free to write it if you have something else in mind."
+- An answer the user writes themselves takes priority over the options and is reflected as is. If the answer mixes in an existing option (e.g., "A, but this part different"), reflect it mixed as is.
+- Do not ask about things already answered in the input or materials. Too many questions make the skill a chore to use.
+- Once you have the answers, reflect them in the document as confirmed items. If the user answers something like "you decide," go with the recommendation and record it in the document as an assumption.
+- If there are no items only the user can decide, do not ask; write the document right away.
 
-질문할 수 없는 환경(사용자 응답을 받을 수 없는 자동 실행 등)이면 추천안으로 작성하고, 그 항목들을 지침서의 미결 사항과 응답에 "가정한 것"으로 분명히 밝힌다.
+In an environment where you cannot ask (such as an automated run that cannot receive user responses), write with the recommendations, and clearly state those items as open items in the document and as "assumptions made" in the response.
 
-## 3. 지침서 구조
+## 3. Document structure
 
-아래 순서를 기본으로 하되, 내용이 없는 절은 빼고 작업 규모에 맞게 줄인다. 작은 작업에 빈 절을 늘어놓지 않는다.
+Use the order below as the default, but drop sections with no content and trim to fit the size of the task. Do not pad a small task with empty sections.
 
 ```markdown
-# <작업 제목>
+# <Task title>
 
-## 목적
-왜 이 작업을 하는지, 끝나면 무엇이 달라지는지 1~3문장.
+## Purpose
+Why this work is being done and what changes when it is finished, in 1–3 sentences.
 
-## 배경 / 현재 상태
-지금까지 된 것, 관련 파일·시스템(절대 경로), 이미 내려진 결정, 시도했다가 배제한 방법과 그 이유.
+## Background / Current state
+What has been done so far, related files and systems (absolute paths), decisions already made, approaches tried and ruled out and why.
 
-## 범위
-- 포함: …
-- 제외: … (손대지 말아야 할 것)
+## Scope
+- In: …
+- Out: … (things not to touch)
 
-## 작업 내용
-1. 구체적인 단계를 명령형으로. 각 단계의 결과물이 드러나게.
+## Work
+1. Concrete steps in the imperative. Make each step's output visible.
 
-## 제약 / 규칙
-지켜야 할 컨벤션, 금지 사항, 사용할 도구·버전, 사용자 승인이 필요한 행동. 각 제약에 이유를 한 줄 붙인다.
+## Constraints / Rules
+Conventions to follow, prohibitions, tools and versions to use, actions that need user approval. Attach a one-line reason to each constraint.
 
-## 완료 기준
-검증 가능한 조건으로. ("빌드 통과", "X 파일에 Y 항목이 있음")
+## Done criteria
+As verifiable conditions. ("Build passes", "File X contains item Y")
 
-## 검증 방법
-실행할 명령, 확인할 화면·출력.
+## Verification
+Commands to run, screens or output to check.
 
-## 보고 방식
-끝나면 무엇을 어떤 형태로 돌려줘야 하는지.
+## Reporting
+What to return when finished, and in what form.
 
-## 참고 자료
-파일 경로, 링크, 관련 문서.
+## References
+File paths, links, related documents.
 
-## 미결 사항
-`확인 필요` 항목과, 받는 쪽이 판단하거나 사용자에게 물어야 할 것.
+## Open items
+`needs verification` items, and things the receiving side must judge or ask the user about.
 ```
 
-작업 종류에 따라 "배경 / 현재 상태"나 "작업 내용"에 다음을 넣는다.
+Depending on the kind of work, include the following in "Background / Current state" or "Work".
 
-- **버그 수정**: 증상, 재현 절차, 기대 동작과 실제 동작, 의심 지점. 원인을 모르면 "원인 파악"을 첫 단계로 둔다.
-- **기능 추가**: 요구사항, 사용자에게 보이는 동작, 영향받는 인터페이스·데이터.
-- **분석·조사**: 답해야 할 질문, 판단 기준, 결과물 형식(보고서·표·추천안).
+- **Bug fix**: symptoms, reproduction steps, expected vs. actual behavior, suspected areas. If the cause is unknown, make "find the cause" the first step.
+- **Feature addition**: requirements, user-visible behavior, affected interfaces and data.
+- **Analysis / investigation**: the questions to answer, judgment criteria, output format (report, table, recommendation).
 
-## 4. 작성 원칙
+## 4. Writing principles
 
-- **자기완결적으로**: "앞서 말한 것", "위의 결과처럼" 같은 표현을 쓰지 않는다. 읽는 사람에게는 그 '앞'이 없다.
-- **구체적으로**: 상대 경로·대명사 대신 절대 경로와 실제 이름을 쓴다. "적절히", "잘" 대신 기준을 적는다.
-- **결론을 옮긴다**: 조사 과정을 나열하지 말고 알아낸 사실과 근거만 정리한다.
-- **언어**: 본문은 한국어. 코드 식별자, 경로, 명령어, 에러 메시지, 제품명은 원문 그대로 둔다.
+- **Self-contained**: do not use expressions like "as mentioned earlier" or "like the result above." The reader has no "earlier."
+- **Concrete**: use absolute paths and real names instead of relative paths and pronouns. Write criteria instead of "appropriately" or "well."
+- **Carry over conclusions**: do not list the investigation process; summarize only the facts found and their evidence.
+- **Language**: write the body in Korean. Keep code identifiers, paths, commands, error messages, and product names in their original form.
 
-## 5. 저장
+## 5. Saving
 
-- 사용자가 위치를 지정하면 그곳에 저장한다. 지정하지 않으면 현재 작업 폴더의 `instructions/` 아래에 `<YYYY-MM-DD>-<작업-요약>.md`로 저장한다. 작업 대상 프로젝트 안에 두면 어느 세션에서든 같은 경로로 찾을 수 있다.
-- 같은 이름의 파일이 있으면 덮어쓰기 전에 확인한다.
+- If the user specifies a location, save it there. Otherwise, save it under `instructions/` in the current working folder as `<YYYY-MM-DD>-<task-summary>.md`. Keeping it inside the target project lets any session find it at the same path.
+- If a file with the same name exists, confirm before overwriting it.
 
-## 6. 작업 지시문
+## 6. Task prompt
 
-받는 쪽이 지침서 파일을 열 수 있다고 보고, 지시문에는 출발에 필요한 것만 담는다.
+Assume the receiving side can open the document file, and put only what is needed to start in the prompt.
 
-- 지침서의 **절대 경로**와 "먼저 끝까지 읽어라"는 지시
-- 작업을 한 줄로 요약한 문장
-- 지침서에서 특히 어기면 안 되는 핵심 제약 1~3개 (실수로 되돌릴 수 없는 행동을 막는 것 위주)
-- 시작 방법: 첫 단계, 미결 사항을 만나면 어떻게 할지(스스로 확인할지, 사용자에게 물을지)
-- 끝나면 지침서의 "보고 방식"대로 보고하라는 지시
+- The document's **absolute path** and an instruction to "read it all the way through first"
+- A one-line summary of the work
+- 1–3 key constraints from the document that must not be broken (mainly ones that prevent irreversible actions by mistake)
+- How to start: the first step, and what to do on hitting an open item (check it on its own, or ask the user)
+- An instruction to report according to the document's "Reporting" section when finished
 
-받는 쪽이 파일에 접근할 수 없다고 사용자가 말하면(다른 PC, 웹 채팅 등), 경로 대신 지침서 전문을 지시문 코드 블록 안에 넣는다.
+If the user says the receiving side cannot access the file (another PC, a web chat, etc.), put the full document inside the prompt's code block instead of the path.
 
-## 7. 응답 형식
+## 7. Response format
 
-다음 순서로 답한다. 지시문을 맨 끝에 두는 이유는 사용자가 바로 복사해 붙여 넣기 쉽게 하기 위해서다.
+Answer in the following order. The prompt goes at the very end so the user can easily copy and paste it right away.
 
-1. 저장한 지침서 경로와 핵심 요약 2~3줄
-2. `확인 필요` / 미결 사항 목록 (있을 때만)
-3. 맨 마지막: 작업 지시문 하나를 코드 블록으로
+1. The saved document path and a 2–3 line summary of the key points
+2. List of `needs verification` / open items (only if any)
+3. At the very end: one task prompt as a code block
