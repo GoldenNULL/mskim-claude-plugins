@@ -54,7 +54,8 @@ A surface is any place that **produces or exposes** the phenomenon. Search broad
 - the code that writes the wrong value / state / side effect, not only the code that reads or displays it,
 - throw/raise sites, error handlers that rewrap or swallow errors, default/fallback values,
 - config, environment variables, feature flags, build scripts, generated code, data files, and migrations that can set the same thing,
-- indirect producers: reflection, dependency injection, event/observer registration, serialized references (e.g., Unity scenes/prefabs, YAML/JSON wiring), string- or convention-based lookup, external processes.
+- indirect producers: reflection, dependency injection, event/observer registration, serialized references (e.g., Unity scenes/prefabs, YAML/JSON wiring), string- or convention-based lookup, external processes,
+- the environment the code runs in: OS/platform differences (path separators, case sensitivity, CRLF/LF, encoding/locale, shell), runtime and toolchain versions (language runtime, SDK, engine, compiler), dependency versions (manifest vs. lockfile vs. what is actually installed, transitive dependencies, changelogs of a recent upgrade), and external state (DB/schema, network, permissions, caches, installed services).
 
 Tools: if a CodeGraph index (`.codegraph/`) and its tools are available, use `codegraph_explore` first for symbols, callers, and call paths; then confirm with Grep/Read. Use Grep for exact text and non-code files. `git log -S` / `git blame` can show when a surface appeared.
 
@@ -84,6 +85,7 @@ Text search shows call *sites*, not how many times something actually runs. For 
 - Verify, don't guess: read the actual code on the path; when safe and cheap, confirm with a read-only check (run an existing test, a small script against a scratch copy, inspect a log). Never change project files to verify.
 - Separate **root cause** (the decision or defect that makes it happen) from **trigger** (the input/condition that exposes it) and **contributing factors**.
 - If more than one trace can cause it, say so — that is often the real answer.
+- If the code path alone does not explain the symptom, or it happens only on some machines, builds, or deployments, compare the environments: OS, runtime/toolchain versions, installed dependency versions, config/env values. A library's behavior counts as a hop in the trace; read its source or docs for the installed version rather than assuming.
 - Mark anything you could not confirm as `미확인` with what would confirm it.
 
 ## 6. Report
