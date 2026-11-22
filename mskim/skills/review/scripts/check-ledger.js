@@ -3,6 +3,7 @@
 // Usage:
 //   node check-ledger.js split <workdir> [--max 20]   raw/*.json -> batches/<n>.json (grouped by file)
 //   node check-ledger.js join  <workdir>              merged/*.json -> merged.json (sorted, renumbered F1..)
+//   node check-ledger.js renumber <workdir>           re-sort and renumber merged.json in place (after the final pass)
 //   node check-ledger.js check <workdir> [--report <file>] | [--batch <n>]   (--batch: batches/<n>.json vs merged/<n>.json only)
 //   node check-ledger.js --self-test
 // Workdir layout: raw/<source>.json (+ raw/<source>.txt when transcribed), previous.json (re-review only),
@@ -12,7 +13,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SEVERITY = ['P0', 'P1', 'P2', 'P3'];
-const PREV_STATUS = ['resolved', 'still present', 'partially resolved'];
+const PREV_STATUS = ['resolved', 'still present', 'partially resolved', 'unverified'];
 const readJson = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));
 const norm = (s) => String(s).replace(/\s+/g, ' ').trim();
 const fileOf = (f) => String(f.location || '').replace(/:\d+(-\d+)?$/, '') || '(no location)';
@@ -111,11 +112,17 @@ function join(dir) {
   const parts = fs.readdirSync(mdir).filter((f) => f.endsWith('.json')).sort().map((f) => readJson(path.join(mdir, f)));
   const all = { findings: [], rejected: [], disputed: [], previous: [] };
   for (const p of parts) for (const k of Object.keys(all)) all[k].push(...(p[k] || []));
+  renumber(dir, all);
+  return { parts: parts.length, findings: all.findings.length };
+}
+
+// Sort by severity and renumber F1..; also run after the final pass, which may merge entries and raise severities.
+function renumber(dir, all = readJson(path.join(dir, 'merged.json'))) {
   const rank = (s) => (SEVERITY.indexOf(s) + 1 || 9);
   all.findings.sort((a, b) => rank(a.severity) - rank(b.severity));
   all.findings.forEach((f, i) => { f.id = `F${i + 1}`; });
   fs.writeFileSync(path.join(dir, 'merged.json'), JSON.stringify(all, null, 2));
-  return { parts: parts.length, findings: all.findings.length };
+  return all.findings.length;
 }
 
 function selfTest() {
@@ -160,6 +167,10 @@ function selfTest() {
   const j = readJson(path.join(tmp, 'merged.json'));
   assert.deepStrictEqual(j.findings.map((f) => [f.id, f.severity]), [['F1', 'P0'], ['F2', 'P2']]);
   assert.strictEqual(j.rejected.length, 1);
+  j.findings[1].severity = 'P0'; j.findings[0].severity = 'P1';
+  fs.writeFileSync(path.join(tmp, 'merged.json'), JSON.stringify(j));
+  renumber(tmp);
+  assert.deepStrictEqual(readJson(path.join(tmp, 'merged.json')).findings.map((f) => f.sources[0]), ['x', 'y']);
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log('self-test ok');
 }
@@ -173,6 +184,8 @@ else if (cmd === 'split' && dir) {
 } else if (cmd === 'join' && dir) {
   const r = join(dir);
   console.log(`JOIN: ${r.parts} part(s) -> merged.json with ${r.findings} finding(s)`);
+} else if (cmd === 'renumber' && dir) {
+  console.log(`RENUMBER: merged.json sorted P0 -> P3, ${renumber(dir)} finding(s) renumbered F1..`);
 } else if (cmd === 'check' && dir) {
   const batch = opt('--batch');
   const prevPath = path.join(dir, 'previous.json');
@@ -184,4 +197,4 @@ else if (cmd === 'split' && dir) {
     !batch && fs.existsSync(prevPath) ? readJson(prevPath) : null, reportPath ? fs.readFileSync(reportPath, 'utf8') : undefined);
   if (problems.length) { console.log(`LEDGER FAIL (${total} raw findings)\n` + problems.join('\n')); process.exit(1); }
   console.log(`LEDGER OK: all ${total} raw findings accounted for exactly once -> ${merged} merged${reportPath ? '; report mentions every id' : ''}`);
-} else { console.error('usage: node check-ledger.js split|join|check <workdir> [--max N] [--report <file>] [--batch N] | --self-test'); process.exit(2); }
+} else { console.error('usage: node check-ledger.js split|join|renumber|check <workdir> [--max N] [--report <file>] [--batch N] | --self-test'); process.exit(2); }

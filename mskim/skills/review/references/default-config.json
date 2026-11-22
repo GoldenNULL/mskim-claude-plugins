@@ -25,7 +25,7 @@
       "split": false,
       "timeout_sec": 1200,
       "project_config_dir": ".gemini",
-      "command": "cd {isolated} && gemini --skip-trust --include-directories {repo} -o json {model_flag} -p \"Follow the review instructions given on stdin.\" < {prompt} > {out}",
+      "command": "cd {isolated} && gemini --skip-trust --approval-mode plan --include-directories {repo} -o json {model_flag} -p \"Follow the review instructions given on stdin.\" < {prompt} > {out}",
       "model_flag": "-m {model}"
     }
   }

@@ -9,7 +9,7 @@ mskim 개인 Claude Code 플러그인 marketplace입니다. 플러그인 `mskim`
 | `instruction` | `/mskim:instruction [작업 지침서를 만들기 위한 내용]` | 애매한 점을 먼저 질문한 뒤 작업 지침서(Markdown)를 저장하고, 함께 넘길 작업 지시문을 응답 끝에 준다 |
 | `why-codebase` | `/mskim:why-codebase [현상/문제] [doc]` | 현상이 왜 일어나는지 표면×경로로 추적해 근본 원인을 분석한다 (코드·환경 포함, 수정은 제안만) |
 | `advice` | `/mskim:advice [현상/문제/분석 문서 경로] [doc]` | 원인 분석(why)에 이어, 코드·환경(OS, 런타임, 의존성, 설정) 양쪽 개선안을 비교하고 권장안·검증·재발 방지를 제시한다 (적용은 하지 않음) |
-| `resolve` | `/mskim:resolve [extend \| refactor] [지침서 경로/작업 내용]` | 지침서·advice·작업 내용을 바탕으로 실제 작업을 수행한다. `extend`는 기존 구조를 유지하고 새 단위를 추가하며, `refactor`는 필요하면 구조까지 재설계한다 |
+| `resolve` | `/mskim:resolve [extend \| refactor] [지침서 경로/작업 내용]` | 지침서·why·advice·review 보고서나 작업 내용을 바탕으로 실제 작업을 수행한다. `extend`는 기존 구조를 유지하고 새 단위를 추가하며, `refactor`는 필요하면 구조까지 재설계한다 |
 | `review` | `/mskim:review [대상] [reviewers=...] [vendors=codex,gemini\|none] [doc]` | 변경을 runtime·correctness·security(+필요 시 concurrency·compatibility·design) 관점으로 Claude subagent와 타 벤더 모델(Codex, Gemini 등)이 병렬 리뷰하고, validator가 모든 지적을 누락 없이 검증·통합해 보고한다 (수정은 하지 않음) |
 
 ## review: 벤더·모델 설정
@@ -23,14 +23,14 @@ mskim 개인 Claude Code 플러그인 marketplace입니다. 플러그인 `mskim`
   "vendors": {
     "codex":  { "model": "gpt-6.2-sol", "effort": "high", "split": true },
     "gemini": { "perspectives": ["security", "correctness"] },
-    "qwen":   { "enabled": true, "command": "qwen -p \"Follow the review instructions given on stdin.\" < {prompt} > {out}" }
+    "qwen":   { "enabled": true, "command": "qwen -p \"Follow the review instructions given on stdin.\" < {prompt} > {out}", "timeout_sec": 1200 }
   }
 }
 ```
 
 `split: true`를 주면 그 벤더를 관점마다 따로 실행한다. 리뷰는 깊어지지만 실행 횟수와 비용이 관점 수만큼 늘어난다. 저장소에 `.codex/`나 `.gemini/`가 있으면 실행 전에 물어본다. 이 폴더들은 MCP 서버나 hook을 실행할 수 있기 때문이다. Gemini는 기본적으로 빈 임시 폴더에서 실행하고, 저장소는 `--include-directories`로 읽게 해서 저장소 설정을 불러오지 않는다.
 
-한 번만 바꿀 때는 `vendors=gemini`, `vendors=none`처럼 인자로 지정한다. 새 벤더는 `command`만 있으면 추가된다. 명령은 headless로 실행되어야 하고, `{prompt}` 파일을 읽어 `{out}`에 결과를 써야 하며, 읽기 전용이어야 한다.
+한 번만 바꿀 때는 `vendors=gemini`, `vendors=none`처럼 인자로 지정한다. 새 벤더는 `command`와 `timeout_sec`만 있으면 추가된다. 명령은 headless로 실행되어야 하고, `{prompt}` 파일을 읽어 `{out}`에 결과를 써야 하며, 읽기 전용이어야 한다.
 
 ## 설치 (새 PC / 새 환경)
 
