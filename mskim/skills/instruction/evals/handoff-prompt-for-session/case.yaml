@@ -1,4 +1,0 @@
-schema_version: "1.1"
-name: handoff-prompt-for-session
-expected_outcome: |
-  작업 지침서 파일이 저장되고, 남은 작업·배제된 방법·제약·완료 기준·보고 방식이 들어 있으며, 응답 마지막에 지침서 경로를 가리키는 지시문 코드 블록이 있다.

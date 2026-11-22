@@ -1,6 +1,0 @@
-schema_version: "1.1"
-name: guideline-from-notes
-expected_outcome: |
-  notes.md의 사실을 반영한 작업 지침서 파일이 저장되고, 응답 마지막에 그 지침서 경로를 가리키는 짧은 작업 지시문 코드 블록이 있다.
-context:
-  scaffold_script: place-files.sh
