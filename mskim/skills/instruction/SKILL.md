@@ -2,6 +2,7 @@
 name: instruction
 description: Creates a task instruction document (a Markdown file) so that the current session or another session/agent can carry out work such as adding a feature, fixing a bug, or analysis smoothly and clearly, and provides a task prompt to hand over with that document at the end of the response. Always use this skill when the user mentions "작업 지침서", "지침서", "작업 지시문", "지시문", "instruction document", "handoff", "인수인계", "a prompt to hand to another session", or "brief", or when they want to summarize the work and discussion so far so another worker can pick it up, even if they do not name the skill directly.
 argument-hint: "[content for building the task instruction document]"
+disable-model-invocation: true
 ---
 
 # Writing a Task Instruction Document + Task Prompt

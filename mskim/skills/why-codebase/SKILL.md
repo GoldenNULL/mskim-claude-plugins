@@ -2,6 +2,7 @@
 name: why-codebase
 description: Analyzes WHY a phenomenon, bug, error, or behavior happens in the current codebase by finding every surface where it shows up and tracing every flow that can reach each surface, then explains the root cause with evidence (analysis only; fixes are proposed, not applied). Optionally saves the analysis as a Markdown document. Always use this skill when the user asks "왜", "어째서", "왜 이래", "원인", "원인 분석", "why does", "why is", "root cause", "어디서 이 값이 나와", "이게 어떻게 호출돼" about code, errors, logs, config, or app behavior, even if they do not name the skill directly.
 argument-hint: "[phenomenon / problem / question] [doc | --doc | 문서화 | --doc=<path>]"
+disable-model-invocation: true
 ---
 
 # Why (codebase): surfaces × traces → root cause
