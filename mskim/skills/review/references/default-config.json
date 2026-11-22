@@ -8,7 +8,7 @@
   "vendors": {
     "codex": {
       "enabled": true,
-      "model": "",
+      "model": "gpt-6.2-sol",
       "effort": "medium",
       "perspectives": "all",
       "split": false,
