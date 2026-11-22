@@ -2,3 +2,6 @@
 *-workspace/
 evals/results/
 __pycache__/
+
+# 같은 폴더에 있는 별도 저장소
+claude-korean-hooks/
