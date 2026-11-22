@@ -1,6 +1,0 @@
-schema_version: "1.1"
-name: coupon-double-discount
-expected_outcome: |
-  Explains that applyCoupon accumulates with += and is reached twice (route + cart:updated listener), plus again on every item add; analysis only, fix proposed.
-context:
-  scaffold_script: place-files.sh

@@ -1,6 +1,0 @@
-schema_version: "1.1"
-name: config-not-found-on-server
-expected_outcome: |
-  Explains that the default config path is relative (config.yaml) and resolved against the cwd, which is / under deploy/app.service; lists all surfaces of the message; saves a report under analysis/.
-context:
-  scaffold_script: place-files.sh

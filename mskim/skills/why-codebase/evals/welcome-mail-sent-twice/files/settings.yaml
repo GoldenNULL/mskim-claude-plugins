@@ -1,5 +1,0 @@
-smtp_host: localhost
-plugins:
-  - app.mail.welcome
-  - app.audit
-  - mail.welcome   # added in #142 for the marketing team's welcome template
