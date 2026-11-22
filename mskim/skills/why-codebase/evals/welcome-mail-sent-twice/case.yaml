@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: welcome-mail-sent-twice
+expected_outcome: |
+  Explains that welcome.py is imported twice under two module names (app.mail.welcome and mail.welcome via settings.yaml plugins + sys.path insert in main.py), so @subscribe registers send_welcome twice; retry is ruled out; admin resend is a separate surface.
+context:
+  scaffold_script: place-files.sh

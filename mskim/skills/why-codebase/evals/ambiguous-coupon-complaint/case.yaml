@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: ambiguous-coupon-complaint
+expected_outcome: |
+  The input is vague. The skill should either ask clarifying questions before analyzing, or (if it cannot ask) state its interpretation explicitly as an assumption and still produce a grounded analysis of coupon behavior.
+context:
+  scaffold_script: place-files.sh
