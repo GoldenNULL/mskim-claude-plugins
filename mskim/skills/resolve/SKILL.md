@@ -22,7 +22,7 @@ Both modes deliver the same thing: the task is done, the build and tests pass, a
 
 - **Mode**: the first token if it is `extend` / `refactor` (also accept `확장`, `--extend`, `리팩터`, `리팩토링`, `--refactor`).
 - **Task**: the rest. It can be:
-  - a path to an instruction document (e.g., written by `/mskim:instruction`) or an `analysis/*-advice-*.md` / `*-why-*.md` file,
+  - a path to an instruction document (e.g., written by `/mskim:instruction`) or an `analysis/*-advice-*.md` / `*-why-*.md` / `*-review-*.md` file,
   - a task, bug, or change described in words,
   - nothing — then use what this conversation already established (a recent instruction document, advice, or discussion).
 
@@ -33,9 +33,10 @@ Both modes deliver the same thing: the task is done, the build and tests pass, a
 Take the requirements from the first source that has them:
 
 1. **An instruction document**: read all of it. Its Purpose, Scope (In/Out), Constraints, and Done criteria are the contract. Spot-check its paths and `file:line` claims against the current code — it may be older than the code.
-2. **An advice or why report** (in this conversation or as a file): implement its 권장안. If the chosen mode contradicts the recommended option (e.g., advice recommends a shared-code redesign but the mode is `extend`), pick the option from that report that fits the mode, or adapt the recommendation, and say so in the report.
-3. **A plain description**: read the code it touches and pin down what "done" means before editing.
-4. **Nothing usable, or only a vague goal** ("이거 좀 개선해줘"): do not guess at a large change. Get direction first the way `/mskim:advice` does — find the cause or the limiting factor, weigh 2–3 options, pick one that fits the mode — keep it short, and state the chosen direction in the report. If the subject is large or the cause unclear, suggest running `/mskim:why-codebase` or `/mskim:advice` first instead of building on a guess.
+2. **A review report** (from `/mskim:review`): fix its findings, P0 first; the task is each finding's 트리거 no longer causing its 영향. Findings marked `unverified`: confirm against the code before changing anything, and report the ones you found to be false. Leave 기각된 지적 alone.
+3. **An advice or why report** (in this conversation or as a file): implement its 권장안. If the chosen mode contradicts the recommended option (e.g., advice recommends a shared-code redesign but the mode is `extend`), pick the option from that report that fits the mode, or adapt the recommendation, and say so in the report.
+4. **A plain description**: read the code it touches and pin down what "done" means before editing.
+5. **Nothing usable, or only a vague goal** ("이거 좀 개선해줘"): do not guess at a large change. Get direction first the way `/mskim:advice` does — find the cause or the limiting factor, weigh 2–3 options, pick one that fits the mode — keep it short, and state the chosen direction in the report. If the subject is large or the cause unclear, suggest running `/mskim:why-codebase` or `/mskim:advice` first instead of building on a guess.
 
 Then read the code the change must reach: the entry points, every caller of anything you will touch, tests, fixtures, config, exports, and build files. This list is the scope; nothing outside it gets touched without a reason.
 

@@ -10,6 +10,27 @@ mskim 개인 Claude Code 플러그인 marketplace입니다. 플러그인 `mskim`
 | `why-codebase` | `/mskim:why-codebase [현상/문제] [doc]` | 현상이 왜 일어나는지 표면×경로로 추적해 근본 원인을 분석한다 (코드·환경 포함, 수정은 제안만) |
 | `advice` | `/mskim:advice [현상/문제/분석 문서 경로] [doc]` | 원인 분석(why)에 이어, 코드·환경(OS, 런타임, 의존성, 설정) 양쪽 개선안을 비교하고 권장안·검증·재발 방지를 제시한다 (적용은 하지 않음) |
 | `resolve` | `/mskim:resolve [extend \| refactor] [지침서 경로/작업 내용]` | 지침서·advice·작업 내용을 바탕으로 실제 작업을 수행한다. `extend`는 기존 구조를 유지하고 새 단위를 추가하며, `refactor`는 필요하면 구조까지 재설계한다 |
+| `review` | `/mskim:review [대상] [reviewers=...] [vendors=codex,gemini\|none] [doc]` | 변경을 runtime·correctness·security(+필요 시 concurrency·compatibility·design) 관점으로 Claude subagent와 타 벤더 모델(Codex, Gemini 등)이 병렬 리뷰하고, validator가 모든 지적을 누락 없이 검증·통합해 보고한다 (수정은 하지 않음) |
+
+## review: 벤더·모델 설정
+
+`review`는 기본으로 Claude와 `codex`, `gemini` CLI를 함께 사용한다. 각 CLI는 미리 설치하고 로그인해 둔다. 설치되지 않았거나 실패한 벤더는 건너뛰지 않고 보고서 맨 위에 실패로 표시한다.
+
+모델이나 벤더를 바꾸려면 덮어쓸 키만 담은 JSON을 만든다. 프로젝트별로는 `.claude/mskim-review.json`, 전역으로는 `~/.claude/mskim-review.json`에 둔다. 기본값은 `mskim/skills/review/references/default-config.json`에 있다.
+
+```json
+{
+  "vendors": {
+    "codex":  { "model": "gpt-6.2-sol", "effort": "high", "split": true },
+    "gemini": { "perspectives": ["security", "correctness"] },
+    "qwen":   { "enabled": true, "command": "qwen -p \"Follow the review instructions given on stdin.\" < {prompt} > {out}" }
+  }
+}
+```
+
+`split: true`를 주면 그 벤더를 관점마다 따로 실행한다. 리뷰는 깊어지지만 실행 횟수와 비용이 관점 수만큼 늘어난다. 저장소에 `.codex/`나 `.gemini/`가 있으면 실행 전에 물어본다. 이 폴더들은 MCP 서버나 hook을 실행할 수 있기 때문이다. Gemini는 기본적으로 빈 임시 폴더에서 실행하고, 저장소는 `--include-directories`로 읽게 해서 저장소 설정을 불러오지 않는다.
+
+한 번만 바꿀 때는 `vendors=gemini`, `vendors=none`처럼 인자로 지정한다. 새 벤더는 `command`만 있으면 추가된다. 명령은 headless로 실행되어야 하고, `{prompt}` 파일을 읽어 `{out}`에 결과를 써야 하며, 읽기 전용이어야 한다.
 
 ## 설치 (새 PC / 새 환경)
 
@@ -46,4 +67,5 @@ claude plugin update mskim@mskim-claude-plugins
 mskim/.claude-plugin/plugin.json  플러그인 정의 (version)
 mskim/skills/<name>/SKILL.md      스킬 본문
 mskim/skills/<name>/evals/        스킬 테스트 케이스 (claude plugin eval 형식)
+mskim/agents/<name>.md            스킬 전용 subagent (`mskim:<name>`)
 ```

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["source", "findings", "coverage", "limits"],
+  "properties": {
+    "source": { "type": "string" },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "perspective", "severity", "title", "location", "trigger", "impact", "evidence", "verification", "pre_existing", "fix"],
+        "properties": {
+          "id": { "type": "string" },
+          "perspective": { "type": "string", "enum": ["runtime", "correctness", "security", "concurrency", "compatibility", "design"] },
+          "severity": { "type": "string", "enum": ["P0", "P1", "P2", "P3"] },
+          "title": { "type": "string" },
+          "location": { "type": "string" },
+          "trigger": { "type": "string" },
+          "impact": { "type": "string" },
+          "evidence": { "type": "string" },
+          "verification": { "type": "string", "enum": ["confirmed", "traced", "unverified"] },
+          "pre_existing": { "type": "boolean" },
+          "fix": { "type": "string" }
+        }
+      }
+    },
+    "coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["perspective", "checked"],
+        "properties": {
+          "perspective": { "type": "string" },
+          "checked": { "type": "string" }
+        }
+      }
+    },
+    "limits": { "type": "array", "items": { "type": "string" } }
+  }
+}
