@@ -1,6 +1,6 @@
 ---
 name: resolve
-description: Carries out actual work — implementing a feature, fixing a bug, applying an improvement — from a task instruction document (such as one made by /mskim:instruction), an advice/why analysis, or a task description, in one of two modes. `extend` keeps the existing structure and implementation intact and adds new classes, functions, or modules beside it (for cases like deploying by copying code into another codebase, where a small, additive, easy-to-port diff matters). `refactor` analyzes the existing structure and redesigns it at the root when that is the right fix. Always use this skill when the user says "resolve", "작업 진행해", "이 지침서대로 해줘", "지침서 수행", "구현해줘", "적용해줘", "수정해줘", "고쳐줘", "확장해서 구현", "리팩터링해서 해결", or hands over an instruction document or advice report to execute, even if they do not name the skill directly.
+description: Carries out actual work — implementing a feature, fixing a bug, applying an improvement — from a task instruction document (such as one made by /mskim:instruction), an advice/why analysis, or a task description, in one of two modes. `extend` keeps the existing structure and implementation intact and adds new classes, functions, or modules beside it (for cases like deploying by copying code into another codebase, where a small, additive, easy-to-port diff matters). `refactor` analyzes the existing structure and redesigns it at the root when that is the right fix.
 argument-hint: "[extend | refactor] [instruction doc path / task / prompt]"
 disable-model-invocation: true
 ---

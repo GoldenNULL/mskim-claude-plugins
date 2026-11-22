@@ -1,6 +1,6 @@
 ---
 name: advice
-description: Proposes HOW to fix or improve a phenomenon, bug, error, or weak spot in the current codebase, continuing from a cause analysis (such as one made by /mskim:why-codebase). Weighs options that change the code and options that change the environment (OS/platform, runtime and toolchain versions, dependencies and lockfiles, config, CI, infrastructure), compares their trade-offs, and recommends one with concrete steps, verification, and prevention (advice only; nothing is applied). Optionally saves the advice as a Markdown document. Always use this skill when the user asks "어떻게 고쳐", "어떻게 해결", "개선 방법", "해결책", "대안", "어떻게 하면 좋을까", "방지하려면", "how do I fix", "how should I fix", "how to improve", "what's the best fix", or follows a why/root-cause analysis with "그럼 어떻게 해?", even if they do not name the skill directly.
+description: Proposes HOW to fix or improve a phenomenon, bug, error, or weak spot in the current codebase, continuing from a cause analysis (such as one made by /mskim:why-codebase). Weighs options that change the code and options that change the environment (OS/platform, runtime and toolchain versions, dependencies and lockfiles, config, CI, infrastructure), compares their trade-offs, and recommends one with concrete steps, verification, and prevention (advice only; nothing is applied). Optionally saves the advice as a Markdown document.
 argument-hint: "[phenomenon / problem / why-analysis doc path] [doc | --doc | 문서화 | --doc=<path>]"
 disable-model-invocation: true
 ---
