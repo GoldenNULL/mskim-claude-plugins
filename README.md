@@ -12,6 +12,7 @@ mskim 개인 Claude Code 플러그인 marketplace입니다. 플러그인 `mskim`
 | `resolve` | `/mskim:resolve [extend \| refactor] [지침서 경로/작업 내용]` | 지침서·why·advice·review 보고서나 작업 내용을 바탕으로 실제 작업을 수행한다. `extend`는 기존 구조를 유지하고 새 단위를 추가하며, `refactor`는 필요하면 구조까지 재설계한다 |
 | `review` | `/mskim:review [대상] [reviewers=...] [vendors=codex,gemini\|none] [doc]` | 변경을 runtime·correctness·security(+필요 시 concurrency·compatibility·design·flow) 관점으로 Claude subagent와 타 벤더 모델(Codex, Gemini 등)이 병렬 리뷰하고, validator가 모든 지적을 누락 없이 검증·통합해 보고한다 (수정은 하지 않음) |
 | `review-loop` | `/mskim:review-loop [대상] [extend \| refactor] [n=3] [major=0] [minor=2] [count-p3] [pre-existing | change-only] [fast] [vendors=...] [reviewers=...]` | review → resolve → re-review를 반복해, 남은 major(P0+P1)·minor(P2) 지적이 기준 이하가 되면 멈춘다. 최대 n라운드이고, 개선이 멈추거나 악화되거나 사용자 판단이 필요하면 일찍 멈춘다. 라운드마다 snapshot과 보고서를 남긴다 |
+| `original-review-loop` | `/mskim:original-review-loop [대상] [extend \| refactor] [n=3] [important=0] [nits=<k>] [pre-existing] [level=medium]` | 내장 `code-review` → resolve → `code-review`를 반복해, 남은 `important` 지적(옵션으로 nit 포함)이 기준 이하가 되면 멈춘다. `review-loop`보다 라운드당 비용이 훨씬 적은 대신 리뷰어가 하나뿐이다. 멈춤 규칙·snapshot·보고서는 `review-loop`와 같다 |
 
 ## review: 벤더·모델 설정
 
