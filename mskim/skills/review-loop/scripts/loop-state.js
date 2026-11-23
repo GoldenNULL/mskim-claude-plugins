@@ -7,7 +7,7 @@
 //        [--major M] [--minor m] [--max-rounds n] [--count-p3] [--pre-existing]   (options are read on round 1, then fixed)
 //   node loop-state.js grades <state.json>   each prev-<id> of the next re-review -> its issue's current {severity, pre_existing}
 //   node loop-state.js --self-test
-// merged.json is /mskim:review's: { findings:[{id, severity, verification, pre_existing, location, same_as?}],
+// merged.json is /mskim:review's: { findings:[{id, severity, verification, pre_existing, exposure_changed?, kind?, location, same_as?}],
 //   disputed:[{id, claim, same_as?}], previous:[{id: "prev-<id in last round>", status, severity?, pre_existing?}] }; a status row's own
 //   severity / pre_existing is the final pass's regrade of what remains (it also establishes a carried dispute); a re-review must give a status for every item of the last round.
 // Every item carries an `issue` key, "<round>:<id>" of the report row where the issue first appeared. Carried previous rows keep it, and
@@ -84,6 +84,8 @@ function buildItems(merged, prevItems, prevIssues, round, newlyBlocked) {
     if (typeof f.severity !== 'string' || !/^P[0-3]$/.test(f.severity)) throw new Error(`${f.id}: severity must be P0-P3, got ${f.severity}`);
     if (f.pre_existing !== undefined && typeof f.pre_existing !== 'boolean') throw new Error(`${f.id}: pre_existing must be true or false, got ${JSON.stringify(f.pre_existing)}`);
     if (f.verification !== undefined && ![...COUNTED, 'unverified'].includes(f.verification)) throw new Error(`${f.id}: verification must be confirmed, traced or unverified, got ${JSON.stringify(f.verification)}`);
+    if (f.exposure_changed !== undefined && typeof f.exposure_changed !== 'boolean') throw new Error(`${f.id}: exposure_changed must be true or false, got ${JSON.stringify(f.exposure_changed)}`);
+    if (f.kind !== undefined && !['defect', 'policy_change'].includes(f.kind)) throw new Error(`${f.id}: kind must be defect or policy_change, got ${JSON.stringify(f.kind)}`);
     let issue = `${round}:${f.id}`;
     const links = [].concat(f.same_as || []);
     for (const l of links) if (!statuses[l]) throw new Error(`${f.id}.same_as ${l} is not in this round's previous statuses`);
@@ -91,7 +93,8 @@ function buildItems(merged, prevItems, prevIssues, round, newlyBlocked) {
       issue = canon(prevItems[links[0].replace(/^prev-/, '')].issue);
       for (const l of links.slice(1)) { const k = canon(prevItems[l.replace(/^prev-/, '')].issue); if (k !== issue) merge[k] = issue; }
     }
-    items[f.id] = { kind: 'finding', current: true, assessed: true, graded: true, issue, severity: f.severity, verification: f.verification, pre_existing: !!f.pre_existing, location: f.location };
+    // a pre-existing defect the change made users hit more often counts as the change's own; a policy change waits on the user's rule
+    items[f.id] = { kind: 'finding', current: true, assessed: true, graded: true, issue, severity: f.severity, verification: f.verification, pre_existing: !!f.pre_existing && !f.exposure_changed, location: f.location, ...(f.kind === 'policy_change' ? { policy: true } : {}) };
   }
   for (const d of merged.disputed || []) {
     if (/^prev-/.test(d.id)) throw new Error(`disputed id ${d.id}: source names must not start with prev- (it marks carried rows)`);
@@ -131,7 +134,8 @@ function buildItems(merged, prevItems, prevIssues, round, newlyBlocked) {
     inherited[c] = !h ? { severity: g.severity, pre_existing: !!g.pre_existing }
       : { severity: sevOrder(g) < sevOrder(h) ? g.severity : h.severity, pre_existing: h.pre_existing && !!g.pre_existing };
   }
-  const blockedKeys = new Set([...Object.keys(prevIssues).filter((k) => prevIssues[k].blocked), ...newlyBlocked].map(canon));
+  const policyKeys = Object.values(items).filter((it) => it.policy).map((it) => it.issue);
+  const blockedKeys = new Set([...Object.keys(prevIssues).filter((k) => prevIssues[k].blocked), ...newlyBlocked, ...policyKeys].map(canon));
   for (const it of Object.values(items)) { it.issue = canon(it.issue); if (blockedKeys.has(it.issue)) it.blocked = true; }
   return { items, inherited };
 }
@@ -140,7 +144,7 @@ const sevOrder = (it) => ['P0', 'P1', 'P2', 'P3'].indexOf(it.severity);
 
 // One issue may have several rows (a current finding linked by same_as, carried aliases prev-F1 / prev-prev-F1): count it once.
 function count(items, opts, inherited = {}) {
-  const c = { major: 0, minor: 0, p0: 0, p3: 0, unverified: 0, pre_existing: 0, disputed: 0, blocked: 0 };
+  const c = { major: 0, minor: 0, p0: 0, p3: 0, unverified: 0, pre_existing: 0, disputed: 0, blocked: 0, policy: 0 };
   const groups = {};
   for (const [id, it] of Object.entries(items)) (groups[it.issue] = groups[it.issue] || []).push({ id, ...it });
   const open = [];
@@ -170,7 +174,9 @@ function count(items, opts, inherited = {}) {
     if (MAJOR.includes(lead.severity)) c.major++; else c.minor++;
     if (lead.severity === 'P0') c.p0++;
     if (blocked) c.blocked++;
-    open.push({ id: lead.id, issue, aliases: rows.map((r) => r.id).filter((x) => x !== lead.id), severity: lead.severity, location: lead.location || (rows.find((r) => r.location) || {}).location, blocked });
+    const policy = rows.some((r) => r.policy);
+    if (policy) c.policy++;
+    open.push({ id: lead.id, issue, aliases: rows.map((r) => r.id).filter((x) => x !== lead.id), severity: lead.severity, location: lead.location || (rows.find((r) => r.location) || {}).location, blocked, ...(policy ? { policy } : {}) });
   }
   return { counts: c, open, issues };
 }
@@ -370,6 +376,17 @@ function selfTest() {
   // --count-p3 and --pre-existing move those into the threshold
   out = record({}, 1, { findings: [f('F1', 'P3', 'a.js:1'), f('F2', 'P1', 'b.js:1', { pre_existing: true })] }, { ...opts, countP3: true, preExisting: true });
   assert.deepStrictEqual([out.result.counts.major, out.result.counts.minor], [1, 1]);
+  // a pre-existing defect the change exposes more counts in change-only; a plain pre-existing one does not
+  out = record({}, 1, { findings: [f('F1', 'P1', 'a.js:1', { pre_existing: true, exposure_changed: true }), f('F2', 'P1', 'b.js:1', { pre_existing: true })] }, opts);
+  assert.deepStrictEqual([out.result.counts.major, out.result.counts.pre_existing, out.result.fix_list], [1, 1, ['F1']]);
+  assert.throws(() => record({}, 1, { findings: [f('F1', 'P1', 'a.js:1', { exposure_changed: 'yes' })] }, opts), /exposure_changed/);
+  // a policy change counts but never reaches resolve, and stays blocked in later rounds; alone over the threshold it blocks the loop
+  t = record({}, 1, { findings: [f('F1', 'P1', 'a.js:1', { kind: 'policy_change' }), f('F2', 'P2', 'b.js:1')] }, { ...opts, minor: 0, maxRounds: 5 }).state;
+  out = { result: t.rounds[0].result };
+  assert.deepStrictEqual([out.result.counts.major, out.result.counts.policy, out.result.fix_list, out.result.open.find((o) => o.id === 'F1').policy], [1, 1, ['F2'], true]);
+  out = record(t, 2, { findings: [], previous: ids(t, 'still present', { 'prev-F2': 'resolved' }) }, {});
+  assert.deepStrictEqual([out.result.decision, out.result.counts.blocked, out.result.fix_list], ['blocked', 1, []]);
+  assert.throws(() => record({}, 1, { findings: [f('F1', 'P1', 'a.js:1', { kind: 'policy' })] }, opts), /kind/);
   // inconsistent input fails instead of being counted around
   assert.throws(() => record(s, 9, { findings: [] }, {}), /out of order/);
   assert.throws(() => record(s, 4, { findings: [], previous: [...p4, { id: 'prev-F99', status: 'still present' }] }, {}), /matches no item/);
