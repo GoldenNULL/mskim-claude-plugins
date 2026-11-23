@@ -49,9 +49,11 @@ The same shape as a JSON Schema: `finding.schema.json` (used to constrain vendor
 
 ## Severity
 
+Grade by the worst realistic impact first. Rarity lowers the grade only when the impact is below P1's: data loss or corruption, a security breach, or a crash stays P0/P1 however rare its trigger.
+
 - **P0** — data loss or corruption, security breach, crash or hang on a normal path, build broken.
 - **P1** — wrong result or broken feature on a realistic path; crash on an edge path; regression of existing behavior.
-- **P2** — wrong behavior only on rare inputs; resource leak; meaningful performance problem; fragile code likely to break on the next change.
+- **P2** — wrong behavior only on rare inputs, when the impact is limited (no data loss, breach, or crash); resource leak; meaningful performance problem; fragile code likely to break on the next change.
 - **P3** — improvement: clarity, structure, minor performance, missing test.
 
 ## Verification
