@@ -71,6 +71,7 @@ Do not ask what the code, config, tests, or git history can tell you. If you can
 ### Both modes
 
 - A change (an in-place fix in extend included) that alters a public API or data format, breaks a stated constraint, or needs edits in Scope (Out) (e.g., a caller there) needs the user's agreement (§2) before editing, unless the user or the instruction document explicitly calls for it — a suggestion in a review, advice, or why report does not count. Prefer a design that avoids it.
+- A fix that makes previously accepted input fail (or previously rejected input pass), a review finding with `kind: "policy_change"` (listed under its 정책 변경 table), or a 수정 제안 that offers alternatives ("reject X, or support X by …") is a policy choice: it needs the user's agreement (§2), even when a review suggested it — the user decides what their users are allowed to do, and a reviewer's first option is not that decision. Ask with the options and their user-visible effect (which inputs change outcome, what message the user sees). If you cannot ask, leave it undone and list it as a blocker. A chosen rejection gets its own result value and message at every caller, not a generic failure.
 - Before running a destructive step (deleting data, resetting a database, a migration on a shared target), confirm the target is disposable; otherwise it needs the user's agreement (§2).
 - Do the whole task: every part of Scope (In), and the callers, tests, fixtures, and config your change breaks.
 - Do not touch Scope (Out) beyond what was agreed, or unrelated code, and do not add features, options, or abstractions nobody asked for.
@@ -86,6 +87,8 @@ If you find the plan is wrong partway through (an assumption fails, the root cau
 ## 5. Verify
 
 Run what the project uses: build, type-check, lint, the tests near the change, and the instruction document's Verification steps and Done criteria. Add a small test for new non-trivial logic when the project has tests (in extend, in a new test file where the framework allows). When the change is structural, as a refactor usually is, run the wider test suite. Run formatters and auto-fixing linters in check mode or only on the lines you changed; never revert a file to undo them — if neither is possible, report that check as not run.
+
+When a fix adds a rejection, also verify one input of the same kind that should still pass (e.g., the 258-char case next to the 259-char one). When a fix adds a user-visible outcome, verify the next user action after it (retry, delete, re-submit) — on the site if the project has one, or name it under 미확인 as a manual scenario. A new outcome is where leftover state (a session counter, a reserved slot) shows up, and only the next action exposes it.
 
 If a check fails, fix what your change caused and re-run. A failure that also happens without your change is pre-existing: report it, and do not fix it outside Scope. Tell this from the failure itself or a separate clean checkout (e.g., a worktree) — never stash, reset, or revert the working tree to find out.
 

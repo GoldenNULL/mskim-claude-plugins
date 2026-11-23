@@ -1,6 +1,6 @@
 ---
 name: review
-description: Reviews a change (current diff, commit, branch, paths, or a /mskim:resolve result) from several perspectives — runtime, correctness, security, and, when the change calls for it, concurrency, compatibility, design — using Claude subagents and other vendors' models (Codex, Gemini, or any configured CLI) in parallel, then validates and merges every finding without dropping any into one severity-ranked report (review only; nothing is fixed). Optionally saves the report as a Markdown document for /mskim:resolve.
+description: Reviews a change (current diff, commit, branch, paths, or a /mskim:resolve result) from several perspectives — runtime, correctness, security, and, when the change calls for it, concurrency, compatibility, design, flow (the user's next action after a new reject or message) — using Claude subagents and other vendors' models (Codex, Gemini, or any configured CLI) in parallel, then validates and merges every finding without dropping any into one severity-ranked report (review only; nothing is fixed). Optionally saves the report as a Markdown document for /mskim:resolve.
 argument-hint: "[target] [reviewers=<perspectives>] [vendors=<names>|none] [doc | --doc | 문서 | 문서화 | docs | --doc=<path>]"
 disable-model-invocation: true
 ---
@@ -69,7 +69,11 @@ Then apply `vendors=` from the arguments; report any name in `vendors=` or `revi
 
 1. Get the diff or file list for the target. Note its size.
 2. Find the code the change reaches: callers of every changed function/class/export, callees whose contract the change relies on, tests and fixtures, config and build files. If CodeGraph is available (see the user's global instructions), use `codegraph affected` / `impact` / `callers`; otherwise grep.
-3. Write a **scope note** (a few lines): target, base and target revisions (commit ids, and whether uncommitted changes are included), the command to see the diff as `git -C "<repo>" …` (some vendors run outside the repository), untracked files listed separately (the diff does not show them), changed and related files as absolute paths, and the change's intent if known (commit message, resolve report, instruction doc). For a commit, range, or branch target, tell reviewers and validators to read files with `git show <revision>:<path>` (the base revision for deleted code), not from the working tree, even when the target is `HEAD`.
+2a. Beyond callers and callees, find and list these, or write "none" with the reason. A call graph does not show them, and defects that surface only on the user's *next* action live here:
+   - **State changed before the change point**: session, cookies, static fields, counters, DB rows, or files that the same request writes *before* reaching the changed code. For each, note whether every new reject/error path restores it.
+   - **Consumers of changed output**: code that parses or matches the changed return values, response bodies, status codes, or messages — including client-side scripts and other services. For every user-visible string the change adds or alters, grep the repository (all file types, vendored folders included) for code that matches on existing sibling strings (e.g., `indexOf("<existing message>")`), and list where a handler for the new string is expected.
+   - **Behavior previously accepted**: inputs that passed before and are now rejected (or the reverse). List each as a policy change.
+3. Write a **scope note**: target, base and target revisions (commit ids, and whether uncommitted changes are included), the command to see the diff as `git -C "<repo>" …` (some vendors run outside the repository), untracked files listed separately (the diff does not show them), changed and related files as absolute paths, and the change's intent if known (commit message, resolve report, instruction doc). For a commit, range, or branch target, tell reviewers and validators to read files with `git show <revision>:<path>` (the base revision for deleted code), not from the working tree, even when the target is `HEAD`. The scope note has fixed headings `## Changed files`, `## Related code`, `## State before the change point`, `## Consumers of changed output`, `## Policy changes`, `## Intent`, `## Environment facts`; a heading with nothing under it says "none — <reason>", so an empty section is a visible decision rather than a silent gap. Do not narrow related code to callers only.
 
 If the target resolves to nothing (empty diff even after the last-commit fallback) and this is not a re-review, say so and stop.
 
@@ -85,7 +89,7 @@ This skill is expensive: one Claude subagent per perspective, one or more runs p
 
 Otherwise, `code-review` is the better fit when **all** of these hold:
 - the change is small: roughly ≤ 3 files and ≤ 100 changed lines, counting additions plus deletions (excluding generated files, lockfiles, and pure moves/renames),
-- §3 added no optional perspective (no concurrency, compatibility, or design signal),
+- §3 added no optional perspective (no concurrency, compatibility, design, or flow signal),
 - it touches no trust boundary or security-sensitive code: authentication/authorization, input parsing from outside, shell/SQL/path construction, crypto, secrets, permissions, deserialization,
 - it is not a `refactor`-mode change and does not change a public API, data format, or protocol — including the shape or format of values that callers parse, store, or send elsewhere.
 
@@ -148,7 +152,13 @@ Target, 기준 revision (scope note's base and target revisions, uncommitted cha
 
 ### F1. <title>
 - 위치 / 트리거 / 영향 / 근거 / 수정 제안
+- 노출 변화 (`exposure_changed: true`인 pre-existing 지적: 이번 변경이 어떻게 더 자주·더 심하게 겪게 만드는지)
 - 재평가·이견 (if any)
+
+## 정책 변경 (사용자 결정 필요)
+| ID | 위치 | 이전 동작 | 바뀐 동작 | 근거 (의도 문서에 명시 여부) |
+|---|---|---|---|---|
+(every finding with `kind: "policy_change"`, also listed under Findings; "없음" if none. A fix needs the user's choice of rule, not a code correction)
 
 ## 이견 (사용자 판단 필요)
 | 원본 ID | 출처 | 리뷰어 주장 | validator 반론 |
@@ -170,7 +180,7 @@ Target, 기준 revision (scope note's base and target revisions, uncommitted cha
 (one row per source × perspective; flag a perspective that a source covered thinly or not at all)
 
 ## 검증하지 못한 것
-Reviewer `limits`, unverified findings, failed or skipped sources, anything not run (tests, other platforms).
+Reviewer `limits`, unverified findings, failed or skipped sources, anything not run (tests, other platforms). List every `limits` entry that starts with `manual scenario:` separately as 수동 시나리오 — user flows a person has to run.
 
 ## 원본 대조표
 | 원본 ID | 출처 | → | 결과 (F# / 이견 / 기각) |

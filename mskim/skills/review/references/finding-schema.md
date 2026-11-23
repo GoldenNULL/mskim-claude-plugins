@@ -26,7 +26,7 @@ This file is given verbatim to every reviewer — Claude subagents and external 
   "findings": [
     {
       "id": "<source>-<n>",
-      "perspective": "runtime | correctness | security | concurrency | compatibility | design",
+      "perspective": "runtime | correctness | security | concurrency | compatibility | design | flow",
       "severity": "P0 | P1 | P2 | P3",
       "title": "one line",
       "location": "path/to/file.ext:line",
@@ -35,6 +35,8 @@ This file is given verbatim to every reviewer — Claude subagents and external 
       "evidence": "code quote or call trace that shows it",
       "verification": "confirmed | traced | unverified",
       "pre_existing": false,
+      "exposure_changed": false,
+      "kind": "defect | policy_change",
       "fix": "suggested fix, short"
     }
   ],
@@ -46,6 +48,9 @@ This file is given verbatim to every reviewer — Claude subagents and external 
 ```
 
 The same shape as a JSON Schema: `finding.schema.json` (used to constrain vendors that support it).
+
+- `exposure_changed`: with `pre_existing: true`, the defect existed at the base, but this change makes users hit it more often or more severely (a new message that invites a retry into it, a new path that now reaches it). Explain how in `impact`. `false` otherwise.
+- `kind`: `"defect"` normally. `"policy_change"` when the change makes previously accepted input fail (or previously rejected input pass) and the intent does not state that rule. It may be exactly what was wanted; the point is that a person decides the rule, not a fix. Severity reflects the user impact.
 
 ## Severity
 
