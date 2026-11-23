@@ -13,7 +13,9 @@ For every finding in your batch file (each keeps its original `id`; the source i
 1. **Check it against the code yourself.** Open the `location`, follow the trace, and decide from the code — not from the reviewer's wording or confidence. Agreement between reviewers still needs the code to support it; a finding only one reviewer made is not weaker for that.
 2. If a source was transcribed (`<workdir>/raw/<source>.txt` exists), read that original text too and tell the orchestrator about any issue it raises that is missing from the transcription.
 3. **Merge duplicates**: same location (or same root cause reached from several places) and same failure. The merged finding lists every raw id in `sources`. Different failures at the same line stay separate.
-4. **Re-grade** severity and `verification` using the schema definitions, and check `kind` and `exposure_changed` too: a `policy_change` whose rule the scope note's Intent states is a `defect` or nothing; `exposure_changed` needs a concrete way the change sends users into the old defect. A merged finding is `policy_change` if any source's claim holds as one, and `exposure_changed` if any source's holds.
+4. **Re-grade** severity and `verification` using the schema definitions, and check `kind`, `pre_existing`, and `aggravated_by_change` too: a `policy_change` whose rule the scope note's Intent states is a `defect` or nothing. A merged finding is `policy_change` if any source's claim holds as one.
+   - Keep `aggravated_by_change: true` only when you confirmed its `aggravation` (before → after, and the change location) from the code; otherwise set it to `false` and say why in `regraded`. If the claim depends on runtime behavior or intent you cannot settle from the code, keep the finding with `aggravated_by_change: false` and start `disagreement` with `aggravation disputed:`, giving the claim and what would settle it (the report lists it under 이견). A merged finding is aggravated if any source's aggravation claim holds.
+   - For every `pre_existing` finding, also check the three aggravation tests yourself (worse outcome, wider exposure, higher frequency — the schema's "Aggravated pre-existing defects"), even when no reviewer set the flag; if one holds, set `aggravated_by_change: true` with `aggravation`, and note it in `regraded`. A defect whose failing path lies entirely in code the change added is `pre_existing: false`.
 5. Put each raw id in exactly one bucket:
    - **findings** — the code supports it (or you cannot rule it out: keep it with `verification: "unverified"`).
    - **rejected** — the code *proves* it wrong: the cited code does not exist, the code already handles the case, or the trigger is impossible on every path (say which guard or check stops it). Missing a concrete trigger also counts. "Minor" or "unlikely" never counts — grade it P3 instead.
@@ -30,7 +32,7 @@ Write `<workdir>/merged/<n>.json` (Bash heredoc; this is the only file you write
       "perspective": "security", "severity": "P1", "title": "...", "location": "path:line",
       "trigger": "...", "impact": "...", "evidence": "...",
       "verification": "confirmed | traced | unverified", "pre_existing": false,
-      "exposure_changed": false, "kind": "defect | policy_change", "fix": "...",
+      "aggravated_by_change": false, "aggravation": "", "kind": "defect | policy_change", "fix": "...",
       "regraded": "reason if severity or verification changed from the sources, else empty",
       "disagreement": "where the sources disagreed and which you took, else empty"
     }
@@ -44,7 +46,7 @@ Write `<workdir>/merged/<n>.json` (Bash heredoc; this is the only file you write
 
 Run after `join` has produced `<workdir>/merged.json`:
 
-- **Cross-batch duplicates**: merge findings in `merged.json` that have the same root cause but came from different batches (different files). Union their `sources`, keep the higher severity, and delete the absorbed entry. Judge from title, trigger, and evidence; re-read code only if unsure.
+- **Cross-batch duplicates**: merge findings in `merged.json` that have the same root cause but came from different batches (different files). Union their `sources`, keep the higher severity (and `aggravated_by_change` with its `aggravation` if either has it), and delete the absorbed entry. Judge from title, trigger, and evidence; re-read code only if unsure.
 - **Re-review** (only if `<workdir>/previous.json` exists): for each previous finding, check the current code and add `{ "id": "prev-F1", "status": "resolved | still present | partially resolved", "evidence": "file:line and why" }` to `merged.json`'s `previous` array.
 
 Edit `merged.json` in place; do not renumber.

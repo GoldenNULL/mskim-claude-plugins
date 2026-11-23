@@ -26,6 +26,14 @@ function loadRaws(dir) {
   });
 }
 
+// aggravated_by_change is optional (older output has none) but, when set, needs a pre-existing defect and a stated before -> after
+function aggravationProblems(f, where, problems) {
+  if (f.aggravated_by_change === undefined) return;
+  if (typeof f.aggravated_by_change !== 'boolean') problems.push(`${where}: aggravated_by_change must be true or false`);
+  else if (f.aggravated_by_change && f.pre_existing === false) problems.push(`${where}: aggravated_by_change needs pre_existing: true (a defect in code the change added is new, not aggravated)`);
+  else if (f.aggravated_by_change && !String(f.aggravation || '').trim()) problems.push(`${where}: aggravated_by_change needs aggravation (before -> after, change location)`);
+}
+
 function check(raws, merged, previous, report) {
   const problems = [];
   const rawIds = new Map();
@@ -54,6 +62,7 @@ function check(raws, merged, previous, report) {
     finalIds.add(f.id);
     if (!Array.isArray(f.sources) || f.sources.length === 0) problems.push(`merged finding ${f.id} has no sources`);
     else f.sources.forEach((id) => account(id, `finding ${f.id}`));
+    aggravationProblems(f, `merged finding ${f.id}`, problems);
   }
   for (const r of merged.rejected || []) {
     if (!r.reason) problems.push(`rejected ${r.id} has no reason`);
@@ -72,6 +81,8 @@ function check(raws, merged, previous, report) {
     else if (prevSeen.has(p.id)) problems.push(`previous id ${p.id} has two statuses`);
     if (!PREV_STATUS.includes(p.status)) problems.push(`previous ${p.id}: status must be one of ${PREV_STATUS.join(' | ')}`);
     if (!p.evidence) problems.push(`previous ${p.id} has no evidence`);
+    if (p.aggravated_by_change !== undefined && p.pre_existing === undefined) problems.push(`previous ${p.id}: a regrade with aggravated_by_change must also state pre_existing`);
+    aggravationProblems(p, `previous ${p.id}`, problems);
     prevSeen.add(p.id);
   }
   for (const id of prevIds) if (!prevSeen.has(id)) problems.push(`previous finding ${id} has no status`);
@@ -149,6 +160,14 @@ function selfTest() {
   const prev = { findings: [{ id: 'prev-F1' }, { id: 'prev-F2' }] };
   assert.match(run({ ...ok, previous: [{ id: 'prev-F1', status: 'resolved', evidence: 'e' }] }, prev), /prev-F2 has no status/);
   assert.match(run({ ...ok, previous: [{ id: 'prev-F1', status: 'fixed', evidence: 'e' }, { id: 'prev-F2', status: 'resolved', evidence: 'e' }] }, prev), /status must be/);
+  // aggravated_by_change needs a pre-existing defect and an aggravation; omitting it (older output) is fine
+  const agg = (extra) => run({ findings: [{ id: 'F1', sources: ['a-1', 'b-1'], ...extra }], rejected: [{ id: 'a-2', reason: 'x' }] });
+  assert.strictEqual(agg({ pre_existing: true, aggravated_by_change: true, aggravation: 'offset -> undercount, x.js:3' }), '');
+  assert.strictEqual(agg({ pre_existing: true }), '');
+  assert.match(agg({ pre_existing: false, aggravated_by_change: true, aggravation: 'a -> b' }), /needs pre_existing/);
+  assert.match(agg({ pre_existing: true, aggravated_by_change: true, aggravation: ' ' }), /needs aggravation/);
+  assert.match(agg({ pre_existing: true, aggravated_by_change: 'yes' }), /true or false/);
+  assert.match(run({ ...ok, previous: [{ id: 'prev-F1', status: 'still present', evidence: 'e', aggravated_by_change: true, aggravation: 'a -> b' }, { id: 'prev-F2', status: 'resolved', evidence: 'e' }] }, prev), /must also state pre_existing/);
   // report must mention every id; F1 does not count as F10
   assert.strictEqual(run(ok, null, '| F1 | a-1 b-1 | a-2 기각 |'), '');
   assert.match(run(ok, null, '| F10 | a-1 b-1 a-2 |'), /does not mention F1/);

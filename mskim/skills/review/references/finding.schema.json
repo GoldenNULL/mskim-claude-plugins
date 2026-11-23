@@ -10,7 +10,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "perspective", "severity", "title", "location", "trigger", "impact", "evidence", "verification", "pre_existing", "exposure_changed", "kind", "fix"],
+        "required": ["id", "perspective", "severity", "title", "location", "trigger", "impact", "evidence", "verification", "pre_existing", "aggravated_by_change", "aggravation", "kind", "fix"],
         "properties": {
           "id": { "type": "string" },
           "perspective": { "type": "string", "enum": ["runtime", "correctness", "security", "concurrency", "compatibility", "design", "flow"] },
@@ -22,7 +22,8 @@
           "evidence": { "type": "string" },
           "verification": { "type": "string", "enum": ["confirmed", "traced", "unverified"] },
           "pre_existing": { "type": "boolean" },
-          "exposure_changed": { "type": "boolean" },
+          "aggravated_by_change": { "type": "boolean" },
+          "aggravation": { "type": "string" },
           "kind": { "type": "string", "enum": ["defect", "policy_change"] },
           "fix": { "type": "string" }
         }

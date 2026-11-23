@@ -69,11 +69,12 @@ Then apply `vendors=` from the arguments; report any name in `vendors=` or `revi
 
 1. Get the diff or file list for the target. Note its size.
 2. Find the code the change reaches: callers of every changed function/class/export, callees whose contract the change relies on, tests and fixtures, config and build files. If CodeGraph is available (see the user's global instructions), use `codegraph affected` / `impact` / `callers`; otherwise grep.
-2a. Beyond callers and callees, find and list these, or write "none" with the reason. A call graph does not show them, and defects that surface only on the user's *next* action live here:
-   - **State changed before the change point**: session, cookies, static fields, counters, DB rows, or files that the same request writes *before* reaching the changed code. For each, note whether every new reject/error path restores it.
-   - **Consumers of changed output**: code that parses or matches the changed return values, response bodies, status codes, or messages — including client-side scripts and other services. For every user-visible string the change adds or alters, grep the repository (all file types, vendored folders included) for code that matches on existing sibling strings (e.g., `indexOf("<existing message>")`), and list where a handler for the new string is expected.
+2a. Beyond callers and callees, find and list these, or write "none" with the reason. A call graph does not show them, and defects that surface only on the user's *next* action — or old defects the change newly exposes — live here:
+   - **Paths the change opens**: screens, dialogs, or handlers that a newly enabled button or link reaches, new callers of existing code, newly exposed APIs or routes, changed defaults. Old defects behind them are now reachable through the change.
+   - **State changed before the change point**: session, cookies, static fields, counters, caches, DB rows, or files that the same request writes *before* reaching the changed code, and other code that reads or writes the same state. For each, note whether every new reject/error path restores it.
+   - **Consumers of changed output**, in both directions: code that parses or matches the changed return values, response bodies, status codes, or messages — including client-side scripts and other services — and, when the change is on the client, the server code that handles what it now sends. For every user-visible string the change adds or alters, grep the repository (all file types, vendored folders included) for code that matches on existing sibling strings (e.g., `indexOf("<existing message>")`), and list where a handler for the new string is expected.
    - **Behavior previously accepted**: inputs that passed before and are now rejected (or the reverse). List each as a policy change.
-3. Write a **scope note**: target, base and target revisions (commit ids, and whether uncommitted changes are included), the command to see the diff as `git -C "<repo>" …` (some vendors run outside the repository), untracked files listed separately (the diff does not show them), changed and related files as absolute paths, and the change's intent if known (commit message, resolve report, instruction doc). For a commit, range, or branch target, tell reviewers and validators to read files with `git show <revision>:<path>` (the base revision for deleted code), not from the working tree, even when the target is `HEAD`. The scope note has fixed headings `## Changed files`, `## Related code`, `## State before the change point`, `## Consumers of changed output`, `## Policy changes`, `## Intent`, `## Environment facts`; a heading with nothing under it says "none — <reason>", so an empty section is a visible decision rather than a silent gap. Do not narrow related code to callers only.
+3. Write a **scope note**: target, base and target revisions (commit ids, and whether uncommitted changes are included), the command to see the diff as `git -C "<repo>" …` (some vendors run outside the repository), untracked files listed separately (the diff does not show them), changed and related files as absolute paths, and the change's intent if known (commit message, resolve report, instruction doc). For a commit, range, or branch target, tell reviewers and validators to read files with `git show <revision>:<path>` (the base revision for deleted code), not from the working tree, even when the target is `HEAD`. The scope note has fixed headings `## Changed files`, `## Related code`, `## Paths the change opens`, `## State before the change point`, `## Consumers of changed output`, `## Policy changes`, `## Intent`, `## Environment facts`; a heading with nothing under it says "none — <reason>", so an empty section is a visible decision rather than a silent gap. Do not narrow related code to callers only.
 
 If the target resolves to nothing (empty diff even after the last-commit fallback) and this is not a re-review, say so and stop.
 
@@ -131,7 +132,7 @@ If no run produced usable output, stop and report the failed and skipped runs �
 ## 5. Validate and merge
 
 1. **Split**: `LEDGER split <workdir> --max <validator_batch_max>`. Raw findings are grouped by file, so duplicates at the same place land in one batch. With no raw findings there are no batches: skip step 2 but still run `join` and, where it applies, the final pass.
-2. **Validate batches in parallel**: one subagent per batch (read-only for the project; it writes only its `merged/<n>.json`), `subagent_type: "mskim:review-validator"` (fallback: `general-purpose` with `${CLAUDE_SKILL_DIR}/../../agents/review-validator.md` pasted in), all in the same message. Give each: the work directory, its batch number, the scope note, the Severity and Verification sections of `finding-schema.md`, the instruction to write `<workdir>/merged/<n>.json`, its check command `LEDGER check <workdir> --batch <n>` (with the path expanded), and the instruction to list in its final message any issue a transcription missed, with a verbatim excerpt (comparing `raw/<source>.txt` against all of `raw/<source>.json`, not just its batch). Do not summarize or pre-filter findings for them — they read the batch file and check each finding against the code.
+2. **Validate batches in parallel**: one subagent per batch (read-only for the project; it writes only its `merged/<n>.json`), `subagent_type: "mskim:review-validator"` (fallback: `general-purpose` with `${CLAUDE_SKILL_DIR}/../../agents/review-validator.md` pasted in), all in the same message. Give each: the work directory, its batch number, the scope note, the Aggravated pre-existing defects, Severity, and Verification sections of `finding-schema.md`, the instruction to write `<workdir>/merged/<n>.json`, its check command `LEDGER check <workdir> --batch <n>` (with the path expanded), and the instruction to list in its final message any issue a transcription missed, with a verbatim excerpt (comparing `raw/<source>.txt` against all of `raw/<source>.json`, not just its batch). Do not summarize or pre-filter findings for them — they read the batch file and check each finding against the code.
 3. **Join**: run each `LEDGER check <workdir> --batch <n>` yourself first (on failure, handle it as in step 5; if a batch still fails, move its file out of `merged/` and list it as unresolved in the incomplete report), then `LEDGER join <workdir>` → `merged.json`, sorted P0 → P3 and renumbered `F1…`.
 4. **Final pass** (only when there were several batches, `previous.json` exists, or a transcribed source has no findings): one more `mskim:review-validator` subagent with the task "final pass" and the check command `LEDGER check <workdir>` — it merges cross-batch duplicates, reads the `.txt` of any transcribed source with no findings for missed issues, and, in re-review, records a status for every previous finding (`unverified` is allowed when the code cannot settle it). Give it the same missed-issue instruction as the batch validators. Then run `LEDGER renumber <workdir>`.
 5. **Check**: `LEDGER check <workdir>`. If it fails, send the problems to the validator responsible (the batch that owns the missing id, or the final pass); fix excerpt errors in your own transcription yourself. If validators reported issues missing from a transcription, remove duplicates among their reports, then add them to that source's raw file (with `excerpt`) and put them in a new `batches/<next n>.json` by hand (do not re-run `split`) for a validator. Whenever any `merged/<n>.json` changes, re-run `join`, then the final pass if it applies, then `LEDGER renumber`, then check again. Do not accept a passing check while a reported missed issue is unprocessed. If the check still fails after two rounds of fixes, the report is incomplete: say so at the top of the report and list the unresolved ledger problems there.
@@ -142,17 +143,17 @@ Write the report in Korean (keep identifiers, paths, commands, messages in origi
 
 ```markdown
 ## 요약
-Target, 기준 revision (scope note's base and target revisions, uncommitted changes included or not), perspectives run, reviewers run (source → model), counts: raw N → merged M (P0 a, P1 b, P2 c, P3 d), disputed D, rejected K.
+Target, 기준 revision (scope note's base and target revisions, uncommitted changes included or not), perspectives run, reviewers run (source → model), counts: raw N → merged M (P0 a, P1 b, P2 c, P3 d), 기존 결함 E (그중 변경으로 악화 A), disputed D, rejected K.
 **실행하지 못한 리뷰어**: source, reason, error tail — or "없음".
 
 ## Findings
 | ID | 심각도 | 관점 | 위치 | 제목 | 검증 | 출처 |
 |----|--------|------|------|------|------|------|
-(all merged findings, P0 → P3; 출처 = which sources reported it, e.g. claude-security, codex)
+(all merged findings, P0 → P3; 출처 = which sources reported it, e.g. claude-security, codex; after 위치, mark `pre_existing` findings `(기존)` and aggravated ones `(기존, 변경으로 악화)`)
 
 ### F1. <title>
 - 위치 / 트리거 / 영향 / 근거 / 수정 제안
-- 노출 변화 (`exposure_changed: true`인 pre-existing 지적: 이번 변경이 어떻게 더 자주·더 심하게 겪게 만드는지)
+- 악화: <`aggravation`> (`aggravated_by_change: true`인 지적만)
 - 재평가·이견 (if any)
 
 ## 정책 변경 (사용자 결정 필요)
@@ -163,7 +164,7 @@ Target, 기준 revision (scope note's base and target revisions, uncommitted cha
 ## 이견 (사용자 판단 필요)
 | 원본 ID | 출처 | 리뷰어 주장 | validator 반론 |
 |---|---|---|---|
-(every disputed raw finding — the validator could not prove it wrong from the code, so neither side is taken)
+(every disputed raw finding — the validator could not prove it wrong from the code, so neither side is taken — plus every merged finding whose `disagreement` starts with `aggravation disputed:`, as `F# (악화 여부)`)
 
 ## 기각된 지적
 | 원본 ID | 출처 | 내용 | 기각 사유 |

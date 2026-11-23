@@ -4,18 +4,23 @@ Each perspective is one lens. A reviewer assigned a perspective reports only wha
 
 ## runtime (always)
 Crashes, unhandled exceptions, null/undefined access, out-of-range indexing, resource leaks (files, handles, sockets, memory, GPU objects), missing cleanup on error paths, infinite loops, unbounded growth, wrong error propagation, swallowed errors, timeouts and retries that never end or never happen.
+- For each pre-existing bug you find on a path the change reaches: did the change make its outcome worse, open a new path to it, or make it reached more often? If so, mark it aggravated (Rules 8).
 
 ## correctness (always)
 Logic that does not do what the change intends: wrong conditions, off-by-one, wrong operator, inverted branch, missing case, wrong default, wrong unit or type conversion, state updated in the wrong order. **Regression**: existing behavior or callers that this change breaks — read every caller of each changed symbol.
+- For each pre-existing bug you find on a path the change reaches: did the change make its outcome worse, open a new path to it, or make it reached more often? If so, mark it aggravated (Rules 8).
 
 ## security (always)
 Untrusted input reaching queries, shells, paths, deserializers, templates, or eval; missing validation at trust boundaries; authentication/authorization gaps; secrets in code, logs, or errors; unsafe defaults; path traversal; injection; insecure crypto or randomness; data exposed to the wrong user.
+- For each pre-existing bug you find on a path the change reaches: did the change make its outcome worse, open a new path to it, or make it reached more often? If so, mark it aggravated (Rules 8).
 
 ## concurrency (signal: threads, locks, async/await, callbacks, events, atomics, shared mutable state, job systems, coroutines)
 Data races, deadlocks, lock ordering, missing await, fire-and-forget errors lost, re-entrancy, check-then-act, cancellation not honored or leaving partial state, retries that duplicate side effects, ordering assumptions between threads or frames.
+- For each pre-existing bug you find on a path the change reaches: did the change make its outcome worse, open a new path to it, or make it reached more often? If so, mark it aggravated (Rules 8).
 
 ## compatibility (signal: public headers/APIs, exported symbols, serialized formats, save files, network protocols, config schemas, DB migrations, CLI flags, version bumps)
 Breaking changes to callers outside the change, old data that no longer loads, protocol mismatch between old and new peers, removed or renamed config keys, platform/OS/runtime differences (paths, case sensitivity, line endings, encodings), dependency version constraints.
+- For each pre-existing bug you find on a path the change reaches: did the change make its outcome worse, open a new path to it, or make it reached more often? If so, mark it aggravated (Rules 8).
 
 ## design (signal: new module, new dependency, structural change over ~50 lines, `refactor` mode)
 Responsibility in the wrong layer, duplicated logic that should be shared, abstraction nobody needs, tight coupling, dead code left behind, naming that misleads, performance traps (N+1, quadratic loops, per-frame allocation, blocking I/O on hot paths), code that is hard to test or change.
