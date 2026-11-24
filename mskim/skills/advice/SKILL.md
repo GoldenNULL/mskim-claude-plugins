@@ -128,7 +128,7 @@ What could not be confirmed, and how to confirm it.
 - **Existing file**: if it is a previous advice report (its first line starts with `> Revision:` and it has a `## 권장안` section), confirm before overwriting. If it is not one, the user declines, or you cannot ask, save under the first unused `-2` (`-3`, …) suffix and say so.
 - **First line**: start it with `> Revision:` and record the revision the cited source comes from, checked before writing the file: branch and commit (`git rev-parse --abbrev-ref HEAD`, `git rev-parse --short HEAD`, plus "uncommitted changes" if `git --no-optional-locks status --porcelain` shows changes other than this and earlier why/advice/review report files), or "not a git repository". If the advice continues a saved why document, link it on the next line.
 - **Failure**: if saving fails, give the full report in chat and say why it was not saved.
-- **Chat**: after the write succeeds, give the saved path plus the 결론 and 권장안 sections (and the 전제 line, 미확인 사항, and any step marked as changing data, calling a real service, or irreversible, if any) instead of repeating the whole report, and suggest `/mskim:resolve extend <path>` (or `refactor`, when the 권장안 changes existing structure) as the next step, or `/mskim:instruction` to hand the work to another session.
+- **Chat**: after the write succeeds, give the saved path plus the 결론 and 권장안 sections (and the 전제 line, 미확인 사항, and any step marked as changing data, calling a real service, or irreversible, if any) instead of repeating the whole report, and suggest `/mskim:resolve extend <path>` (or `refactor`, when the 권장안 changes existing structure) as the next step, or `/mskim:wanna` to hand the work to another session.
 
 ## When there is no relevant code
 
