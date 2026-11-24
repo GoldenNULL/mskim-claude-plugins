@@ -10,6 +10,12 @@ mskim 개인 Claude Code 플러그인 marketplace입니다. 플러그인 `mskim`
 | `why-codebase` | `/mskim:why-codebase [현상/문제] [doc]` | 현상이 왜 일어나는지 표면×경로로 추적해 근본 원인을 분석한다 (코드·환경 포함, 수정은 제안만) |
 | `advice` | `/mskim:advice [현상/문제/분석 문서 경로] [doc]` | 원인 분석(why)에 이어, 코드·환경(OS, 런타임, 의존성, 설정) 양쪽 개선안을 비교하고 권장안·검증·재발 방지를 제시한다 (적용은 하지 않음) |
 | `resolve` | `/mskim:resolve [extend \| refactor] [지침서 경로/작업 내용]` | 지침서·why·advice·review 보고서나 작업 내용을 바탕으로 실제 작업을 수행한다. `extend`는 기존 구조를 유지하고 새 단위를 추가하며, `refactor`는 필요하면 구조까지 재설계한다 |
+| `total-review` | `/mskim:total-review [diff 파일 \| 브랜치 \| PR \| A..B] [PR 설명·이슈·문서]` | 명시적으로 호출할 때만 실행되는 통합 리뷰다. 트리아지로 필요한 분야만 고르고, 공통 컨텍스트 패키지를 한 번 만들어 5개 분야 리뷰 스킬을 subagent로 병렬 실행한 뒤 중복 병합·severity 재조정·critical/high 검증을 거쳐 머지 가능 / 수정 후 머지 / 머지 차단을 판정한다. 소규모 변경(50줄 미만·파일 2개 이하, SKILL.md 상단에서 조정)은 subagent 없이 직접 검토한다 |
+| `bug-review` | `/mskim:bug-review [diff 파일 \| 브랜치 \| PR \| A..B]` | 변경에서 기능적 결함(분기·경계값, null, 예외 처리, 데이터 손실, 동시성)만 찾아 severity·confidence·file:line·재현 시나리오로 보고한다. 명시적으로 호출할 때만 실행된다. 보안·테스트·컨벤션·배포 영향은 다루지 않는다 (total-review가 내부에서 쓰는 분야 스킬 5개 중 하나) |
+| `test-review` | `/mskim:test-review [diff 파일 \| 브랜치 \| PR \| A..B]` | 변경이 테스트로 보호되는지 본다: 핵심 경로·실패 경로 테스트, 버그 수정의 회귀 테스트, 실제로 검증하는 테스트인지(assertion 없음, 과도한 mock, 구현 결합). 지적마다 "어떤 동작이 깨져도 현재 테스트가 통과하는가"를 적는다. 명시적으로 호출할 때만 실행되고, 제품 코드 버그는 다루지 않는다 (total-review가 내부에서 쓰는 분야 스킬 5개 중 하나) |
+| `security-review` | `/mskim:security-review [diff 파일 \| 브랜치 \| PR \| A..B]` | 변경에서 보안 취약점(인증·인가, 인젝션·XSS·경로 조작·역직렬화, 비밀정보·개인정보 노출, SSRF·안전하지 않은 기본값·새 의존성·새 엔드포인트)만 찾아 severity·confidence·file:line·공격 시나리오로 보고한다. 명시적으로 호출할 때만 실행된다. 정상 사용 중 오작동과 테스트 부족은 다루지 않는다 (total-review가 내부에서 쓰는 분야 스킬 5개 중 하나) |
+| `context-review` | `/mskim:context-review [diff 파일 \| 브랜치 \| PR \| A..B] [PR 설명·이슈·문서]` | 변경이 diff 바깥과 맞는지 본다: PR 설명·이슈와의 일치(빠진 요구사항, 요청 밖 동작 변경), 변경 범위(무관한 변경, 복제 로직 중 일부만 수정), 기존 유틸·관례와의 일관성, 레이어 경계, 도메인 규칙·ADR, 주석·이름. diff 밖 코드와 문서를 직접 탐색하고, 의도를 모르면 그 사실을 먼저 적는다. 명시적으로 호출할 때만 실행되고, 기능 결함과 외부 계약·운영 영향은 다루지 않는다 (total-review가 내부에서 쓰는 분야 스킬 5개 중 하나) |
+| `change-impact-review` | `/mskim:change-impact-review [diff 파일 \| 브랜치 \| PR \| A..B]` | 변경이 코드 바깥에서 깨뜨리는 것만 본다: API 하위 호환(필드 삭제·이름·타입, 응답 형식, 에러 코드), DB 마이그레이션 안전성(대형 테이블 락, 기본값 없는 NOT NULL, 롤백, 배포 순서), 새 환경변수·설정 키와 누락 시 동작, 배포 순서·피처 플래그·롤백. 지적마다 "어떤 소비자·환경에서 무엇이 깨지는가"를 적는다. 명시적으로 호출할 때만 실행되고, 로직 결함과 내부 정합성은 다루지 않는다 (total-review가 내부에서 쓰는 분야 스킬 5개 중 하나) |
 
 ## 배포하지 않는 스킬 (`unpublished-skills/`)
 

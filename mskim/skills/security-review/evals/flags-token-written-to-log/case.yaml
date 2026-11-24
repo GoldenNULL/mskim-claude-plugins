@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: flags-token-written-to-log
+expected_outcome: |
+  The review reports that refresh() now writes the raw refresh token and access token to the
+  info log (app/auth/refresh.py:11), so anyone with log access (operators, log pipelines, a log
+  store breach) can replay the tokens and act as the user.
+context:
+  scaffold_script: place-files.sh

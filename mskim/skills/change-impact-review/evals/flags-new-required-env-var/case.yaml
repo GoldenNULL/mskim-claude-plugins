@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: flags-new-required-env-var
+expected_outcome: |
+  The review reports that PAYMENT_WEBHOOK_SECRET is read with os.environ[...] and no
+  default (config/settings.py:10), so any environment whose env file (kept in the infra
+  repository) lacks it crashes with KeyError at import/boot. It suggests adding the value
+  to every environment before deploying, or a deploy-order / fail-safe approach.
+context:
+  scaffold_script: place-files.sh

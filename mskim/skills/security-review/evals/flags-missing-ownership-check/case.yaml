@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: flags-missing-ownership-check
+expected_outcome: |
+  The review reports that GET /invoices/:id/pdf checks only that the invoice exists, not that
+  invoice.ownerId matches req.user.id (unlike GET /invoices/:id), so any logged-in user can download
+  another user's invoice PDF by changing the id (IDOR / horizontal privilege escalation). Location
+  src/routes/invoices.ts:17 (16-20 acceptable).
+context:
+  scaffold_script: place-files.sh

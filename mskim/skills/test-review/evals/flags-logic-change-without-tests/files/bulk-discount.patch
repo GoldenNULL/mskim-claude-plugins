@@ -1,0 +1,33 @@
+From 18d6d1dce73103fb53540cd95de47e69a671a5c4 Mon Sep 17 00:00:00 2001
+From: t <t@t>
+Date: Tue, 24 Nov 2026 10:09:04 +0900
+Subject: [PATCH] Add bulk discount for orders of 100,000 won or more
+
+---
+ shop/pricing.py | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/shop/pricing.py b/shop/pricing.py
+index d2744f7..0ffc5f7 100644
+--- a/shop/pricing.py
++++ b/shop/pricing.py
+@@ -1,8 +1,13 @@
+ MEMBER_RATE = 0.05
++BULK_RATE = 0.10
++BULK_THRESHOLD = 100_000
+ 
+ 
+ def final_price(subtotal: int, is_member: bool) -> int:
+-    """Price in won after discounts."""
++    """Price in won after discounts. Bulk and member discounts stack."""
++    rate = 0.0
++    if subtotal >= BULK_THRESHOLD:
++        rate += BULK_RATE
+     if is_member:
+-        return round(subtotal * (1 - MEMBER_RATE))
+-    return subtotal
++        rate += MEMBER_RATE
++    return round(subtotal * (1 - rate))
+-- 
+2.56.0.windows.4
+

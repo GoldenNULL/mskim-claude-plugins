@@ -1,0 +1,12 @@
+diff --git a/src/receipt/receipt.ts b/src/receipt/receipt.ts
+index 5e2a9c1..b8d07f3 100644
+--- a/src/receipt/receipt.ts
++++ b/src/receipt/receipt.ts
+@@ -8,6 +8,7 @@ export interface Receipt {
+ export function receiptLines(r: Receipt): string[] {
+   return [
+     `상품 금액  ${formatKRW(r.subtotal)}`,
++    `배송비    ${formatKRW(r.shippingFee)}`,
+     `합계     ${formatKRW(r.subtotal + r.shippingFee)}`,
+   ];
+ }

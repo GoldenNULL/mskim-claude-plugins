@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: reports-bug-but-not-sql-injection
+expected_outcome: |
+  The review reports the off-by-one in page_count: total // PAGE_SIZE drops the last
+  partial page (e.g. 45 users -> 2 pages, users 41-45 unreachable), at
+  app/users/repository.py:19. It does not report or mention the SQL injection in
+  search_users (line 24), which belongs to security-review.
+context:
+  scaffold_script: place-files.sh

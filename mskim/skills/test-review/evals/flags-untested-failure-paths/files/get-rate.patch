@@ -1,0 +1,64 @@
+From 1425cd1e23a9ffbca944049e0ffc1e361d4e5e83 Mon Sep 17 00:00:00 2001
+From: t <t@t>
+Date: Tue, 24 Nov 2026 10:09:07 +0900
+Subject: [PATCH] Add getRate with cache fallback when the rate API fails
+
+---
+ src/rates/getRate.ts  | 21 +++++++++++++++++++++
+ tests/getRate.test.ts | 16 ++++++++++++++++
+ 2 files changed, 37 insertions(+)
+ create mode 100644 src/rates/getRate.ts
+ create mode 100644 tests/getRate.test.ts
+
+diff --git a/src/rates/getRate.ts b/src/rates/getRate.ts
+new file mode 100644
+index 0000000..8f5c161
+--- /dev/null
++++ b/src/rates/getRate.ts
+@@ -0,0 +1,21 @@
++import { httpGet } from "../http";
++import { rateCache } from "./rateCache";
++
++export class RateUnavailableError extends Error {}
++
++export async function getRate(currency: string): Promise<number> {
++  try {
++    const res = await httpGet(`/rates/${currency}`);
++    if (res.status !== 200) {
++      throw new RateUnavailableError(`status ${res.status}`);
++    }
++    rateCache.set(currency, res.body.rate);
++    return res.body.rate;
++  } catch (e) {
++    const cached = rateCache.get(currency);
++    if (cached !== undefined) {
++      return cached;
++    }
++    throw e instanceof RateUnavailableError ? e : new RateUnavailableError(String(e));
++  }
++}
+diff --git a/tests/getRate.test.ts b/tests/getRate.test.ts
+new file mode 100644
+index 0000000..943bf49
+--- /dev/null
++++ b/tests/getRate.test.ts
+@@ -0,0 +1,16 @@
++import { getRate } from "../src/rates/getRate";
++import { httpGet } from "../src/http";
++import { rateCache } from "../src/rates/rateCache";
++
++jest.mock("../src/http");
++
++describe("getRate", () => {
++  beforeEach(() => rateCache.clear());
++
++  it("returns the rate from the API and caches it", async () => {
++    (httpGet as jest.Mock).mockResolvedValue({ status: 200, body: { rate: 1350.5 } });
++
++    await expect(getRate("USD")).resolves.toBe(1350.5);
++    expect(rateCache.get("USD")).toBe(1350.5);
++  });
++});
+-- 
+2.56.0.windows.4
+

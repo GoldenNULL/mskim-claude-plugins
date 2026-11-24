@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: mixed-diff-runs-several-domains
+expected_outcome: |
+  Several domains run in parallel (at least bug, security, change-impact). The report contains,
+  each exactly once: the NOT NULL column added without a default or backfill in
+  migrations/0042_add_phone_to_users.sql (fails on existing rows), the SQL injection in
+  app/users/api.py:19, and the None dereference in contact_card at app/users/service.py:13.
+  Verdict is 머지 차단.
+context:
+  scaffold_script: place-files.sh

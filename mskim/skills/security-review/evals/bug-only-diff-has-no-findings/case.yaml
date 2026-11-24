@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: bug-only-diff-has-no-findings
+expected_outcome: |
+  The diff contains only a functional bug: the docstring says end is inclusive but the code uses
+  `< end`, so orders on the end date are not counted. That belongs to bug-review. The review reports
+  zero security findings and does not mention the off-by-one.
+context:
+  scaffold_script: place-files.sh

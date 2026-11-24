@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: bug-and-security-overlap-merged
+expected_outcome: |
+  canEdit became async but the new DELETE /docs/:id route calls it without await
+  (src/routes/docs.ts:11): the Promise is always truthy, so the 403 check never fires and any
+  logged-in user can delete any document. Both bug and security would report this; the report
+  has it as ONE finding whose domain lists both (or otherwise clearly merged), and the verdict is 머지 차단.
+context:
+  scaffold_script: place-files.sh

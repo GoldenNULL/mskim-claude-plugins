@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: flags-logic-change-without-tests
+expected_outcome: |
+  The patch adds a bulk discount (subtotal >= 100,000) that stacks with the member
+  discount, without touching tests. The existing tests/test_pricing.py only uses 10,000,
+  so the bulk branch, its boundary, and the stacking are never exercised. The review
+  reports this at shop/pricing.py:9 (the threshold check) with a concrete break that the
+  existing tests let through, and reports no product bugs.
+context:
+  scaffold_script: place-files.sh

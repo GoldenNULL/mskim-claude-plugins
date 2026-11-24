@@ -1,0 +1,67 @@
+From 482fd4c2c5a9d7965f2b9f6d05ce7ead27e5e38c Mon Sep 17 00:00:00 2001
+From: t <t@t>
+Date: Tue, 24 Nov 2026 10:09:12 +0900
+Subject: [PATCH] Add parse_port for reading ports from config
+
+---
+ config/ports.py     | 14 ++++++++++++++
+ tests/test_ports.py | 26 ++++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+)
+ create mode 100644 config/ports.py
+ create mode 100644 tests/test_ports.py
+
+diff --git a/config/ports.py b/config/ports.py
+new file mode 100644
+index 0000000..e536b26
+--- /dev/null
++++ b/config/ports.py
+@@ -0,0 +1,14 @@
++import re
++
++MIN_PORT = 1
++MAX_PORT = 65535
++
++
++def parse_port(value: str) -> int:
++    """Parse a TCP port from config text. Raises ValueError for anything else."""
++    if not re.fullmatch(r"[0-9]+", value):
++        raise ValueError(f"port must be digits only, got {value!r}")
++    port = int(value)
++    if not MIN_PORT <= port <= MAX_PORT:
++        raise ValueError(f"port must be {MIN_PORT}-{MAX_PORT}, got {port}")
++    return port
+diff --git a/tests/test_ports.py b/tests/test_ports.py
+new file mode 100644
+index 0000000..044e299
+--- /dev/null
++++ b/tests/test_ports.py
+@@ -0,0 +1,26 @@
++import pytest
++
++from config.ports import parse_port
++
++
++@pytest.mark.parametrize(
++    "text, expected",
++    [("80", 80), ("1", 1), ("65535", 65535), ("0080", 80)],
++)
++def test_parses_valid_ports(text, expected):
++    assert parse_port(text) == expected
++
++
++@pytest.mark.parametrize("text", ["0", "65536", "99999999999999999999"])
++def test_rejects_out_of_range(text):
++    with pytest.raises(ValueError, match="port must be 1-65535"):
++        parse_port(text)
++
++
++@pytest.mark.parametrize(
++    "text",
++    ["", "abc", "-1", "+80", " 80", "80 ", "80\n", "8o", "8_0", "٣"],
++)
++def test_rejects_non_digits(text):
++    with pytest.raises(ValueError, match="port must be digits only"):
++        parse_port(text)
+-- 
+2.56.0.windows.4
+

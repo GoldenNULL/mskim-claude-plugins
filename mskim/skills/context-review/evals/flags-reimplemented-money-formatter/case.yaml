@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: flags-reimplemented-money-formatter
+expected_outcome: |
+  The review reports that src/checkout/summary.ts defines its own formatPrice (lines 3-5)
+  instead of using the existing formatKRW in src/utils/money.ts, and that the copy differs
+  from it: no rounding, and toLocaleString() without a locale depends on the server locale.
+  The scenario names a concrete amount or locale where the checkout screen shows a different
+  string than the rest of the app.
+context:
+  scaffold_script: place-files.sh

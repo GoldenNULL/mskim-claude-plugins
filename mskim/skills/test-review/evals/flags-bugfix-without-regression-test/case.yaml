@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: flags-bugfix-without-regression-test
+expected_outcome: |
+  The patch fixes page_count (floor -> ceiling division) without adding a test. The
+  existing tests use totals 40 and 0, which pass on both the old and the new code. The
+  review reports the missing regression test at app/users/repository.py:19, with
+  evidence that reverting the fix keeps all tests green, and suggests a total that is not
+  a multiple of PAGE_SIZE (e.g. 45 -> 3).
+context:
+  scaffold_script: place-files.sh

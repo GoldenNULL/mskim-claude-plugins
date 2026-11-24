@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: docs-only-diff-skips-most-domains
+expected_outcome: |
+  Only README.md and docs/setup.md changed, with no behavior claims that contradict anything.
+  Triage skips bug, security, test, and change-impact (each with a one-line reason; context may run
+  to check the docs). The report has zero findings and verdict 머지 가능.
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,10 @@
+diff --git a/app/auth/refresh.py b/app/auth/refresh.py
+--- a/app/auth/refresh.py
++++ b/app/auth/refresh.py
+@@ -8,5 +8,5 @@
+ def refresh(refresh_token: str) -> dict:
+     user_id = verify_refresh_token(refresh_token)
+     access_token = issue_access_token(user_id)
+-    logger.info("token refreshed user=%s", user_id)
++    logger.info("token refreshed user=%s refresh=%s access=%s", user_id, refresh_token, access_token)
+     return {"access_token": access_token}

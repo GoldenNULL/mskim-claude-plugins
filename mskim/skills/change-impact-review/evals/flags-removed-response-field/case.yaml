@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: flags-removed-response-field
+expected_outcome: |
+  The review reports that removing email from the GET /api/v1/users/:id response breaks
+  backward compatibility for existing consumers of the public v1 API (web, mobile apps,
+  partner integrations), located in src/api/users/serializer.ts around line 7 or 14, and
+  suggests a compatible path (keep the field, deprecate first, or version the API).
+context:
+  scaffold_script: place-files.sh

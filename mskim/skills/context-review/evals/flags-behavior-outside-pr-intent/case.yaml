@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: flags-behavior-outside-pr-intent
+expected_outcome: |
+  The review reports that the inactive-user filter was added to the shared find_users
+  query (app/users/queries.py:4), which the admin user management screen
+  (app/admin/user_admin.py) also uses, so the admin screen stops showing inactive users —
+  the opposite of what the PR description says it must keep doing.
+context:
+  scaffold_script: place-files.sh

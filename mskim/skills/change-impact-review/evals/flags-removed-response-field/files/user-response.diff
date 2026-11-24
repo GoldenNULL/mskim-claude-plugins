@@ -1,0 +1,19 @@
+diff --git a/src/api/users/serializer.ts b/src/api/users/serializer.ts
+index 9a1c3e2..4b7d0f8 100644
+--- a/src/api/users/serializer.ts
++++ b/src/api/users/serializer.ts
+@@ -3,14 +3,12 @@
+ // GET /api/v1/users/:id response body (public REST API v1; used by the web app, iOS/Android apps, and partner integrations)
+ export interface UserResponse {
+   id: string;
+   name: string;
+-  email: string;
+   createdAt: string;
+ }
+ 
+ export function toUserResponse(user: User): UserResponse {
+   return {
+     id: user.id,
+     name: user.name,
+-    email: user.email,
+     createdAt: user.createdAt.toISOString(),
