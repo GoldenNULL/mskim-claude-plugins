@@ -1,5 +1,5 @@
 ---
-name: instruction
+name: wanna
 description: Creates a task instruction document (a Markdown file) so that the current session or another session/agent can carry out work such as adding a feature, fixing a bug, or analysis smoothly and clearly, and provides a task prompt to hand over with that document at the end of the response.
 argument-hint: "[content for building the task instruction document]"
 disable-model-invocation: true

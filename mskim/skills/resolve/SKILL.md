@@ -1,6 +1,6 @@
 ---
 name: resolve
-description: Carries out actual work — implementing a feature, fixing a bug, applying an improvement — from a task instruction document (such as one made by /mskim:instruction), an advice/why analysis, a /mskim:review report, or a task description, in one of two modes. `extend` keeps the existing structure and implementation intact and adds new classes, functions, or modules beside it (for cases like deploying by copying code into another codebase, where a small, additive, easy-to-port diff matters). `refactor` analyzes the existing structure and redesigns it at the root when that is the right fix.
+description: Carries out actual work — implementing a feature, fixing a bug, applying an improvement — from a task instruction document (such as one made by /mskim:wanna), an advice/why analysis, a /mskim:review report, or a task description, in one of two modes. `extend` keeps the existing structure and implementation intact and adds new classes, functions, or modules beside it (for cases like deploying by copying code into another codebase, where a small, additive, easy-to-port diff matters). `refactor` analyzes the existing structure and redesigns it at the root when that is the right fix.
 argument-hint: "[extend | refactor] [instruction doc path / task / prompt]"
 disable-model-invocation: true
 ---
@@ -11,7 +11,7 @@ Input: $ARGUMENTS
 
 ## Purpose
 
-`instruction`, `why-codebase`, `advice`, and `review` prepare and decide; this skill **does the work** and changes the code. The mode decides how much of the existing code the change may move:
+`wanna`, `why-codebase`, `advice`, and `review` prepare and decide; this skill **does the work** and changes the code. The mode decides how much of the existing code the change may move:
 
 - **extend** — keep what exists: new behavior lands in new units at the extension points the design already offers, and edits to existing files are wiring only (§3). Use it when the diff has to be small, additive, and easy to carry over — for example, when the change is deployed by copying code into another codebase by hand, where every edited line in an existing file is a manual merge.
 - **refactor** — analyze the existing structure first, and when the root cause or the right design lives in that structure, redesign it: move responsibilities, change signatures, merge or split modules, delete what becomes dead. Correctness and a clean end state win over a small diff.
@@ -20,7 +20,7 @@ Input: $ARGUMENTS
 
 - **Mode**: the first token if it is `extend` / `refactor` (also accept `확장`, `--extend`, `리팩터`, `리팩토링`, `--refactor`). If that token is the verb of the task sentence (`extend the timeout to 30s`), it is part of the task, not the mode.
 - **Task**: the rest. It can be:
-  - a path to an instruction document (e.g., written by `/mskim:instruction`) or an `analysis/*-advice-*.md` / `*-why-*.md` / `*-review-*.md` file (`--doc` can save under any name, so tell the kind by its top-level sections, in this order: `## Findings` → review, `## 권장안` → advice, `## 경로 (Traces)` → why; with none of these, an instruction document only if it has a Scope or Done criteria section — `## 범위 (Scope)` / `## 완료 기준 (Done criteria)`, or the English names alone in older documents — else a plain description). If a given path cannot be read, report it and ask for the right one (if you cannot ask, stop); do not treat the path as a task description,
+  - a path to an instruction document (e.g., written by `/mskim:wanna`) or an `analysis/*-advice-*.md` / `*-why-*.md` / `*-review-*.md` file (`--doc` can save under any name, so tell the kind by its top-level sections, in this order: `## Findings` → review, `## 권장안` → advice, `## 경로 (Traces)` → why; with none of these, an instruction document only if it has a Scope or Done criteria section — `## 범위 (Scope)` / `## 완료 기준 (Done criteria)`, or the English names alone in older documents — else a plain description). If a given path cannot be read, report it and ask for the right one (if you cannot ask, stop); do not treat the path as a task description,
   - a task, bug, or change described in words,
   - nothing — only then use what this conversation already established (a recent instruction document, advice, or discussion).
 
