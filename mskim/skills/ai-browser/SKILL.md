@@ -15,9 +15,11 @@ The agent works in its own ego lite TaskSpace: its own tabs and its own visible 
 
 If `$ARGUMENTS` is empty, ask what to do in the browser before opening anything.
 
-## 1. Load the ego lite API for this version
+## 1. Load the ego-browser skill first
 
-Run `ego-browser skill` and follow its guide for every browser call: how to run scripts (on Windows PowerShell, use the `.mjs` file form), the TaskSpace and Page API, and the start-of-reply and end-of-reply patterns. The guide matches the installed ego lite version. This skill adds only the workflow on top of it, so do not use API names from memory. If the command is missing, follow the ego-browser skill's `references/install.md`.
+Before opening any browser, invoke the `ego-browser` skill with the Skill tool and do what it says. It runs `ego-browser skill`, which prints the usage guide for the installed ego lite version, and it covers the cases this skill does not: a truncated guide (the output must end with `[ego-browser:skill] end of guide`), a missing or outdated `ego-browser` command (its `references/install.md`), and clearing cookies or storage (its `references/clearing-state.md`). If the Skill tool does not list `ego-browser`, run `ego-browser skill` directly instead.
+
+Follow that guide for every browser call: how to run scripts (on Windows PowerShell, use the `.mjs` file form), the TaskSpace and Page API, and the start-of-reply and end-of-reply patterns. This skill adds only the workflow on top of it, so do not use API names from memory.
 
 ## 2. Open the agent space
 
