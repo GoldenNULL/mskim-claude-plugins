@@ -1,0 +1,294 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PR review report v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "rules_version", "target", "verdict", "summary", "findings", "previous", "coverage", "metadata"],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "rules_version": {
+      "const": 2
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "pr_number", "base_sha", "head_sha", "merge_base_sha", "observed_base_sha", "observed_head_sha"],
+      "properties": {
+        "repository": {
+          "type": ["string", "null"]
+        },
+        "pr_number": {
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "base_sha": {
+          "type": ["string", "null"],
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+        },
+        "head_sha": {
+          "type": ["string", "null"],
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+        },
+        "merge_base_sha": {
+          "type": ["string", "null"],
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+        },
+        "observed_base_sha": {
+          "type": ["string", "null"],
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+        },
+        "observed_head_sha": {
+          "type": ["string", "null"],
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+        }
+      }
+    },
+    "verdict": {
+      "enum": ["REQUEST CHANGES", "COMMENT", "APPROVE"]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "previous": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "head_sha", "relationship", "findings"],
+      "properties": {
+        "status": {
+          "enum": ["not_provided", "loaded", "unusable"]
+        },
+        "head_sha": {
+          "type": ["string", "null"],
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+        },
+        "relationship": {
+          "enum": ["same_head", "ancestor", "rewritten", null]
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/previousFinding"
+          }
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["diff_complete", "required_context_complete", "changed_files", "reviewed_files", "context_files", "excluded_files", "unreviewed_files", "limitations"],
+      "properties": {
+        "diff_complete": {
+          "type": "boolean"
+        },
+        "required_context_complete": {
+          "type": "boolean"
+        },
+        "changed_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reviewed_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "context_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "excluded_files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fileGap"
+          }
+        },
+        "unreviewed_files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fileGap"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "validation", "engine", "engine_version", "model", "effort"],
+      "properties": {
+        "mode": {
+          "const": "static"
+        },
+        "validation": {
+          "enum": ["same_session", "independent", "not_completed"]
+        },
+        "engine": {
+          "type": ["string", "null"]
+        },
+        "engine_version": {
+          "type": ["string", "null"]
+        },
+        "model": {
+          "type": ["string", "null"]
+        },
+        "effort": {
+          "type": ["string", "null"]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "location": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "revision", "line"],
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "revision": {
+              "type": "string",
+              "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+            },
+            "line": {
+              "type": ["integer", "null"],
+              "minimum": 1
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "fileGap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "reason"],
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["anchor", "defect_location", "trigger", "evidence", "impact"],
+      "properties": {
+        "anchor": {
+          "$ref": "#/$defs/location"
+        },
+        "defect_location": {
+          "$ref": "#/$defs/location"
+        },
+        "trigger": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "impact": {
+          "type": "string"
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "severity", "category", "change_relation", "confidence", "anchor", "defect_location", "trigger", "evidence", "impact", "fix_direction", "validation_needed", "origin"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "severity": {
+          "enum": ["blocker", "major", "minor"]
+        },
+        "category": {
+          "enum": ["regression", "data_error", "runtime_error", "security"]
+        },
+        "change_relation": {
+          "enum": ["introduced", "worsened", "newly_exposed"]
+        },
+        "confidence": {
+          "enum": ["static_supported", "needs_validation"]
+        },
+        "anchor": {
+          "$ref": "#/$defs/location"
+        },
+        "defect_location": {
+          "$ref": "#/$defs/location"
+        },
+        "trigger": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "impact": {
+          "type": "string"
+        },
+        "fix_direction": {
+          "type": "string"
+        },
+        "validation_needed": {
+          "type": ["string", "null"]
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        }
+      }
+    },
+    "previousFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "severity", "status", "evidence", "origin"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "severity": {
+          "enum": ["blocker", "major", "minor"]
+        },
+        "status": {
+          "enum": ["resolved", "open", "closed_by_policy", "unverified", "outside_scope"]
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        }
+      }
+    }
+  }
+}

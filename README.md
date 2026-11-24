@@ -6,6 +6,7 @@ mskim 개인 Claude Code 플러그인 marketplace입니다. 플러그인 `mskim`
 
 | 스킬 | 사용법 | 설명 |
 |---|---|---|
+| `pr-review` | `/mskim:pr-review <PR 번호·URL 또는 base...head> [previous=review.json] [format=json] [limit=n]` | merge-base 기준 PR 정적 리뷰. 이전 지적을 다시 확인하고 전체 지적의 심각도로 판정한다. 기본 출력은 한국어 Markdown이다. |
 | `instruction` | `/mskim:instruction [작업 지침서를 만들기 위한 내용]` | 애매한 점을 먼저 질문한 뒤 작업 지침서(Markdown)를 저장하고, 함께 넘길 작업 지시문을 응답 끝에 준다 |
 | `why-codebase` | `/mskim:why-codebase [현상/문제] [doc]` | 현상이 왜 일어나는지 표면×경로로 추적해 근본 원인을 분석한다 (코드·환경 포함, 수정은 제안만) |
 | `advice` | `/mskim:advice [현상/문제/분석 문서 경로] [doc]` | 원인 분석(why)에 이어, 코드·환경(OS, 런타임, 의존성, 설정) 양쪽 개선안을 비교하고 권장안·검증·재발 방지를 제시한다 (적용은 하지 않음) |
