@@ -1,15 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "PR review report v2",
+  "title": "PR review report v3",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "rules_version", "target", "verdict", "summary", "findings", "previous", "coverage", "metadata"],
   "properties": {
     "schema_version": {
-      "const": 2
+      "const": 3
     },
     "rules_version": {
-      "const": 2
+      "const": 3
     },
     "target": {
       "type": "object",
@@ -219,7 +219,16 @@
     "finding": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "title", "severity", "category", "change_relation", "confidence", "anchor", "defect_location", "trigger", "evidence", "impact", "fix_direction", "validation_needed", "origin"],
+      "required": ["id", "title", "severity", "category", "change_relation", "confidence", "anchor", "defect_location", "trigger", "evidence", "impact", "fix_direction", "expected_outcome", "rule_citation", "origin"],
+      "if": {
+        "properties": { "category": { "const": "repository_rule" } }
+      },
+      "then": {
+        "properties": { "rule_citation": { "type": "object" } }
+      },
+      "else": {
+        "properties": { "rule_citation": { "type": "null" } }
+      },
       "properties": {
         "id": {
           "type": "string"
@@ -231,13 +240,13 @@
           "enum": ["blocker", "major", "minor"]
         },
         "category": {
-          "enum": ["regression", "data_error", "runtime_error", "security"]
+          "enum": ["regression", "data_error", "runtime_error", "security", "performance", "repository_rule"]
         },
         "change_relation": {
-          "enum": ["introduced", "worsened", "newly_exposed"]
+          "const": "introduced"
         },
         "confidence": {
-          "enum": ["static_supported", "needs_validation"]
+          "const": "static_supported"
         },
         "anchor": {
           "$ref": "#/$defs/location"
@@ -255,10 +264,24 @@
           "type": "string"
         },
         "fix_direction": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
-        "validation_needed": {
-          "type": ["string", "null"]
+        "expected_outcome": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule_citation": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["path", "revision", "line", "quote", "applicability"],
+          "properties": {
+            "path": { "type": "string", "minLength": 1 },
+            "revision": { "type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$" },
+            "line": { "type": "integer", "minimum": 1 },
+            "quote": { "type": "string", "minLength": 1 },
+            "applicability": { "type": "string", "minLength": 1 }
+          }
         },
         "origin": {
           "$ref": "#/$defs/origin"

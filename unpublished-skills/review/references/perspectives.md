@@ -4,19 +4,24 @@ Each perspective is one lens. A reviewer assigned a perspective reports only wha
 
 ## runtime (always)
 Crashes, unhandled exceptions, null/undefined access, out-of-range indexing, resource leaks (files, handles, sockets, memory, GPU objects), missing cleanup on error paths, infinite loops, unbounded growth, wrong error propagation, swallowed errors, timeouts and retries that never end or never happen.
-- For every external call or process the change touches, follow each outcome, not only the one the change was written for: succeeded; **finished but failed** (non-zero exit code, exception, error output, partial or empty result); timed out or hung; never started. Is the exit code or error read before the result is used, and before the handle is closed or disposed (e.g., `ExitCode` read before `Close()`)? Does each failure outcome reach the caller, or does the code go on as if the step had worked?
+- For every external call or process the change touches, follow each outcome, not only the one the change was written for: succeeded; **finished but failed** (non-zero exit code, exception, error output, partial or empty result); timed out or hung; never started. Is the exit code or error status read before the result is used, and before the handle is closed or disposed? Many APIs report failure only through a value nobody has to read — e.g., `ExitCode` read before `Close()`; `subprocess.run(check=False)` and its `returncode`; an HTTP client that returns 4xx/5xx without throwing (`fetch` and `res.ok`, `requests` without `raise_for_status()`). Does each failure outcome reach the caller, or does the code go on as if the step had worked?
 - For each pre-existing bug you find on a path the change reaches: did the change make its outcome worse, open a new path to it, or make it reached more often? If so, mark it aggravated (Rules 8).
 
 ## correctness (always)
 Logic that does not do what the change intends: wrong conditions, off-by-one, wrong operator, inverted branch, missing case, wrong default, wrong unit or type conversion, state updated in the wrong order. **Regression**: existing behavior or callers that this change breaks — read every caller of each changed symbol.
-- **Removed-behavior audit**: for every replaced call, flag, branch, or default, name the property the old code guaranteed, and find where the new code guarantees it again (the scope note's "Removed or replaced behavior" is your starting list). A comment or commit message saying why the change is safe ("prevents paths over 260 chars") is a claim, not evidence: check what the new code actually does, including the behavior it newly creates.
+- **Removed-behavior audit**: for every replaced call, flag, branch, or default, name the property the old code guaranteed, and find where the new code guarantees it again (the scope note's "Removed or replaced behavior" is your starting list). A comment or commit message saying why the change is safe is a claim, not evidence: check what the new code actually does, including the behavior it newly creates (e.g., a comment that a new flag "prevents paths over 260 chars").
 - For each pre-existing bug you find on a path the change reaches: did the change make its outcome worse, open a new path to it, or make it reached more often? If so, mark it aggravated (Rules 8).
 
 ## security (always)
 Untrusted input reaching queries, shells, paths, deserializers, templates, or eval; missing validation at trust boundaries; authentication/authorization gaps; secrets in code, logs, or errors; unsafe defaults; path traversal; injection; insecure crypto or randomness; data exposed to the wrong user.
 - Review every item in the scope note's "Security checks in the change" first and in full, however small its diff — this is where a short edit in a big change hides.
 - **Fail closed**: for each check, follow every non-success outcome of what it depends on (the tool or call failed, timed out, returned partial output, or produced names the check did not expect). Each must end in a rejection, not in the unchecked input being accepted. A check that runs on a tool's output inherits that tool's renames and failure modes.
-- Boundary inputs of the check itself: case, trailing dots or spaces, double extensions, no extension, Unicode look-alikes, alternate data streams, very long names — as the library function the check uses actually treats them.
+- **Boundary inputs of the check**: inputs that the check's own parsing or normalization treats differently from the code that later uses the value. Test what the actual library function does with them, e.g.:
+  - file names: case, trailing dots/spaces, double or missing extension, alternate data streams, very long names
+  - URLs and hosts: case, IDN/punycode, `user@host`, trailing-dot domains, `//` and `\` variants, IPv6/decimal IPs, a prefix match (`startswith`) that also accepts `https://good.com.evil.net`
+  - paths: `..`, symlinks, mixed separators, UNC/device paths
+  - numbers and sizes: negative, zero, overflow, units
+  - encodings: double URL encoding, Unicode normalization, null bytes
 - For each pre-existing bug you find on a path the change reaches: did the change make its outcome worse, open a new path to it, or make it reached more often? If so, mark it aggravated (Rules 8).
 
 ## concurrency (signal: threads, locks, async/await, callbacks, events, atomics, shared mutable state, job systems, coroutines)
@@ -35,7 +40,7 @@ Follow the user, not the function: what happens on the *next* action after each 
 
 ## External tool checklist (every perspective, when the scope note lists an external tool or library edge)
 Do not treat the tool as a black box that "just works". For each listed tool or call, and for the arguments the change gives it:
-1. **Output shape**: what exactly it produces for the inputs the code will feed it — names, renames on conflict (e.g., `-aou` appends a suffix to a duplicate name), overwrites, flattened or kept folders, path length, encoding. Does the code that reads the output (and any check on it) expect that shape?
+1. **Output shape**: what exactly it produces for the inputs the code will feed it — names, renames on conflict, overwrites, partial files, flattened or kept folders, path length, encoding (e.g., 7-Zip `-aou` appends `_1` to a duplicate name; `rsync --partial` leaves partly transferred files; `curl` exits 0 on an HTTP 4xx/5xx unless given `--fail`; `ffmpeg -n` / `-y` refuse or force overwriting). Does the code that reads the output (and any check on it) expect that shape?
 2. **Failure behavior**: its exit codes and what each means, what it leaves behind on failure (partial files), and what it does when it hits a limit (path length, disk, size).
 3. **What changed from the old arguments**: the guarantees the old invocation gave and the new one drops (the removed-behavior audit, applied to flags).
 4. **Library edges**: the documented result of the library functions involved on the boundary inputs above.
