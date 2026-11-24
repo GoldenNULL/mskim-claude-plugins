@@ -99,7 +99,7 @@ Do not commit unless the user or the instruction document asks for it; a commit 
 
 ## 6. Report
 
-If the instruction document has a Reporting section, follow its form, but still include the touched existing files, any extend deviation, check results, open Done criteria, and blockers. Otherwise write the report in Korean (keep identifiers, paths, commands, and messages in original form). Use `file:line` references. Scale it to the task and drop empty sections. Redact credentials, tokens, and personal data from quoted output. End by suggesting `/mskim:review` on the change as the next step.
+If the instruction document has a Reporting section, follow its form, but still include the touched existing files, any extend deviation, check results, open Done criteria, and blockers. Otherwise write the report in Korean (keep identifiers, paths, commands, and messages in original form). Use `file:line` references. Scale it to the task and drop empty sections. Redact credentials, tokens, and personal data from quoted output. End by suggesting a review of the change as the next step, with the built-in `/code-review` (add a higher level such as `/code-review high` when the change touches a security check, an external tool invocation, or a public API).
 
 ```markdown
 ## 결과
