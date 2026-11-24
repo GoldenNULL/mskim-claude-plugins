@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: clean-diff-is-mergeable
+expected_outcome: |
+  A behavior-preserving refactor with tests. The report's verdict is 머지 가능 with zero findings.
+context:
+  scaffold_script: place-files.sh

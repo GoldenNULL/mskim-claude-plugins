@@ -1,0 +1,19 @@
+diff --git a/src/checkout/summary.ts b/src/checkout/summary.ts
+new file mode 100644
+index 0000000..4b1e2aa
+--- /dev/null
++++ b/src/checkout/summary.ts
+@@ -0,0 +1,13 @@
++import type { Cart } from "./cart";
++
++function formatPrice(amount: number): string {
++  return amount.toLocaleString() + "원";
++}
++
++export function checkoutSummary(cart: Cart): string[] {
++  return [
++    `상품 금액: ${formatPrice(cart.subtotal)}`,
++    `배송비: ${formatPrice(cart.shippingFee)}`,
++    `결제 금액: ${formatPrice(cart.subtotal + cart.shippingFee)}`,
++  ];
++}

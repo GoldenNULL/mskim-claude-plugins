@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: flags-duplicated-logic-fixed-in-one-place
+expected_outcome: |
+  The review reports that the discount cap was added only to invoice_total
+  (app/billing/invoice.py) while cart_total in app/cart/totals.py:3 still applies the
+  uncapped rate, so for a discount rate above 30% the cart shows a lower amount than the
+  invoice charges.
+context:
+  scaffold_script: place-files.sh

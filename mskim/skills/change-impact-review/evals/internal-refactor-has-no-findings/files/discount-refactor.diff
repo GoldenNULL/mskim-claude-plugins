@@ -1,0 +1,15 @@
+diff --git a/src/pricing/discount.ts b/src/pricing/discount.ts
+index 5d2e8a4..b0c71f3 100644
+--- a/src/pricing/discount.ts
++++ b/src/pricing/discount.ts
+@@ -1,5 +1,8 @@
+ /** `rate` is a fraction (0.1 = 10%). The result is rounded to cents. */
+ export function applyDiscount(price: number, rate: number): number {
+-  const discounted = price - price * rate;
+-  return Math.round(discounted * 100) / 100;
++  return roundToCents(price - price * rate);
++}
++
++function roundToCents(value: number): number {
++  return Math.round(value * 100) / 100;
+ }

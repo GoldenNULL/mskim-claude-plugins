@@ -1,0 +1,11 @@
+diff --git a/app/reports/orders.py b/app/reports/orders.py
+new file mode 100644
+--- /dev/null
++++ b/app/reports/orders.py
+@@ -0,0 +1,6 @@
++from datetime import date
++
++
++def count_orders_in_range(orders, start: date, end: date) -> int:
++    """Count orders placed between start and end, both inclusive."""
++    return sum(1 for o in orders if start <= o.placed_on < end)

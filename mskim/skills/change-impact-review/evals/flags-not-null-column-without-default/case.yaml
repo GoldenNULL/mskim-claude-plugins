@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: flags-not-null-column-without-default
+expected_outcome: |
+  The review reports that ALTER TABLE ... ADD COLUMN tenant_id BIGINT NOT NULL with no
+  default fails on the existing ~30M rows (migrations/20261124_add_tenant_id_to_orders.sql:2),
+  rated critical, and suggests add-nullable, backfill, then set NOT NULL. Flagging the
+  non-concurrent CREATE INDEX lock on line 3 is also correct.
+context:
+  scaffold_script: place-files.sh

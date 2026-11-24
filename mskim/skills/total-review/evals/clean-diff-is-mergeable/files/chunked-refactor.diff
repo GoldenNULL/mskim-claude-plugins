@@ -1,0 +1,55 @@
+diff --git a/app/notifications/sender.py b/app/notifications/sender.py
+--- a/app/notifications/sender.py
++++ b/app/notifications/sender.py
+@@ -1,9 +1,9 @@
+ from app.mail import send_batch
++from app.utils.iterables import chunked
+ 
+ BATCH_SIZE = 100
+ 
+ 
+ def notify_all(users):
+-    for i in range(0, len(users), BATCH_SIZE):
+-        batch = users[i:i + BATCH_SIZE]
++    for batch in chunked(users, BATCH_SIZE):
+         send_batch([u.email for u in batch])
+diff --git a/app/utils/iterables.py b/app/utils/iterables.py
+new file mode 100644
+--- /dev/null
++++ b/app/utils/iterables.py
+@@ -0,0 +1,10 @@
++from typing import Sequence, TypeVar
++
++T = TypeVar("T")
++
++
++def chunked(items: Sequence[T], size: int) -> list[list[T]]:
++    """Split `items` into consecutive lists of at most `size` items; the last may be shorter."""
++    if size < 1:
++        raise ValueError(f"size must be >= 1, got {size}")
++    return [list(items[i:i + size]) for i in range(0, len(items), size)]
+diff --git a/tests/test_iterables.py b/tests/test_iterables.py
+new file mode 100644
+--- /dev/null
++++ b/tests/test_iterables.py
+@@ -0,0 +1,20 @@
++import pytest
++
++from app.utils.iterables import chunked
++
++
++def test_splits_evenly():
++    assert chunked([1, 2, 3, 4], 2) == [[1, 2], [3, 4]]
++
++
++def test_last_chunk_is_shorter():
++    assert chunked([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]]
++
++
++def test_empty_input():
++    assert chunked([], 3) == []
++
++
++def test_rejects_non_positive_size():
++    with pytest.raises(ValueError):
++        chunked([1], 0)

@@ -1,0 +1,32 @@
+diff --git a/app/notifications/sender.py b/app/notifications/sender.py
+index 41c9d2e..a07b3f1 100644
+--- a/app/notifications/sender.py
++++ b/app/notifications/sender.py
+@@ -1,9 +1,9 @@
+ from app.mail import send_batch
++from app.utils.iterables import chunked
+
+ BATCH_SIZE = 100
+
+
+ def notify_all(users):
+-    for i in range(0, len(users), BATCH_SIZE):
+-        batch = users[i:i + BATCH_SIZE]
++    for batch in chunked(users, BATCH_SIZE):
+         send_batch([u.email for u in batch])
+diff --git a/app/utils/iterables.py b/app/utils/iterables.py
+new file mode 100644
+index 0000000..5b8e2c4
+--- /dev/null
++++ b/app/utils/iterables.py
+@@ -0,0 +1,10 @@
++from typing import Sequence, TypeVar
++
++T = TypeVar("T")
++
++
++def chunked(items: Sequence[T], size: int) -> list[list[T]]:
++    """Split `items` into consecutive lists of at most `size` items; the last may be shorter."""
++    if size < 1:
++        raise ValueError(f"size must be >= 1, got {size}")
++    return [list(items[i:i + size]) for i in range(0, len(items), size)]

@@ -1,0 +1,22 @@
+diff --git a/app/notes/routes.py b/app/notes/routes.py
+new file mode 100644
+--- /dev/null
++++ b/app/notes/routes.py
+@@ -0,0 +1,17 @@
++from flask import Blueprint, g, jsonify, request
++
++from app.auth import login_required
++from app.db import get_db
++
++bp = Blueprint("notes", __name__)
++
++
++@bp.get("/notes")
++@login_required
++def list_my_notes():
++    limit = min(max(request.args.get("limit", 20, type=int), 1), 100)
++    rows = get_db().execute(
++        "SELECT id, title, updated_at FROM notes WHERE owner_id = ? ORDER BY updated_at DESC LIMIT ?",
++        (g.user.id, limit),
++    ).fetchall()
++    return jsonify([dict(r) for r in rows])

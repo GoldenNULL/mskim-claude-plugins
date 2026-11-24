@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: internal-refactor-has-no-findings
+expected_outcome: |
+  The change extracts a non-exported helper; applyDiscount keeps its signature and
+  results. The review reports zero findings, says "발견 사항 없음", and states what it checked.
+context:
+  scaffold_script: place-files.sh

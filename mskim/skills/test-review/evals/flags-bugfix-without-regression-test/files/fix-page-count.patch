@@ -1,0 +1,23 @@
+From 94c2f5fe6bd510ff4a000aec1e51a0f8a64b7432 Mon Sep 17 00:00:00 2001
+From: t <t@t>
+Date: Tue, 24 Nov 2026 10:09:10 +0900
+Subject: [PATCH] Fix page_count dropping the last partial page
+
+45 users reported 2 pages, so users 41-45 were unreachable from the pager.
+---
+ app/users/repository.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/app/users/repository.py b/app/users/repository.py
+index ec8c55e..c331654 100644
+--- a/app/users/repository.py
++++ b/app/users/repository.py
+@@ -16,4 +16,4 @@ def page_count(conn) -> int:
+     cur = conn.cursor()
+     cur.execute("SELECT COUNT(*) FROM users")
+     (total,) = cur.fetchone()
+-    return total // PAGE_SIZE
++    return (total + PAGE_SIZE - 1) // PAGE_SIZE
+-- 
+2.56.0.windows.4
+

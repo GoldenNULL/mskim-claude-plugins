@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: well-tested-change-has-no-findings
+expected_outcome: |
+  parse_port is tested on valid values, both range boundaries and just beyond them,
+  oversized numbers, and a wide set of non-digit inputs, with real assertions on the
+  result and the error message. The review reports zero findings, says "발견 사항 없음",
+  and states what it checked.
+context:
+  scaffold_script: place-files.sh

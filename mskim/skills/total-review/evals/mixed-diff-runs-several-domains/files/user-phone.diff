@@ -1,0 +1,33 @@
+diff --git a/migrations/0042_add_phone_to_users.sql b/migrations/0042_add_phone_to_users.sql
+new file mode 100644
+--- /dev/null
++++ b/migrations/0042_add_phone_to_users.sql
+@@ -0,0 +1 @@
++ALTER TABLE users ADD COLUMN phone VARCHAR(20) NOT NULL;
+diff --git a/app/users/api.py b/app/users/api.py
+--- a/app/users/api.py
++++ b/app/users/api.py
+@@ -10,3 +10,11 @@
+ @login_required
+ def me():
+     return jsonify(id=g.user.id, name=g.user.name)
++
++
++@bp.get("/users/search")
++@login_required
++def search():
++    q = request.args.get("q", "")
++    rows = get_db().execute(f"SELECT id, name FROM users WHERE name LIKE '%{q}%'").fetchall()
++    return jsonify([dict(r) for r in rows])
+diff --git a/app/users/service.py b/app/users/service.py
+--- a/app/users/service.py
++++ b/app/users/service.py
+@@ -6,3 +6,8 @@
+     if user is None:
+         raise LookupError(user_id)
+     return user
++
++
++def contact_card(user_id: int) -> str:
++    user = repo.find(user_id)
++    return f"{user.name} <{user.phone}>"

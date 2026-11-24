@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: clean-change-fits-context
+expected_outcome: |
+  The change matches the PR description, uses the existing formatKRW as CONTRIBUTING.md
+  requires, and touches nothing else. The review reports zero findings, says
+  "발견 사항 없음", and states what it compared the change with.
+context:
+  scaffold_script: place-files.sh

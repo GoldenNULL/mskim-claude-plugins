@@ -1,0 +1,13 @@
+diff --git a/app/billing/invoice.py b/app/billing/invoice.py
+index 2c4d1e0..9a7f3b2 100644
+--- a/app/billing/invoice.py
++++ b/app/billing/invoice.py
+@@ -1,3 +1,7 @@
++MAX_DISCOUNT_RATE = 0.3
++
++
+ def invoice_total(subtotal: int, discount_rate: float) -> int:
+     """Amount charged on the invoice."""
+-    return round(subtotal * (1 - discount_rate))
++    rate = min(discount_rate, MAX_DISCOUNT_RATE)
++    return round(subtotal * (1 - rate))

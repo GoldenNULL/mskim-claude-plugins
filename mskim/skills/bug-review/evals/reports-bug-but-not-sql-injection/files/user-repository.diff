@@ -1,0 +1,22 @@
+diff --git a/app/users/repository.py b/app/users/repository.py
+index 6e0d7a2..c19f4b8 100644
+--- a/app/users/repository.py
++++ b/app/users/repository.py
+@@ -9,3 +9,17 @@ def list_users(conn, page: int):
+         (PAGE_SIZE, (page - 1) * PAGE_SIZE),
+     )
+     return cur.fetchall()
++
++
++def page_count(conn) -> int:
++    """Number of pages list_users can serve."""
++    cur = conn.cursor()
++    cur.execute("SELECT COUNT(*) FROM users")
++    (total,) = cur.fetchone()
++    return total // PAGE_SIZE
++
++
++def search_users(conn, name: str):
++    cur = conn.cursor()
++    cur.execute(f"SELECT id, name, email FROM users WHERE name LIKE '%{name}%' ORDER BY id")
++    return cur.fetchall()

@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: small-diff-reviewed-inline
+expected_outcome: |
+  A 9-line, 1-file change is a small change: the review is done inline without spawning any
+  subagent. It reports that percent=100 is rejected (`>= 100`) although the docstring allows 0-100
+  (app/billing/discount.py:3), and the run summary says the small-change mode was used.
+context:
+  scaffold_script: place-files.sh

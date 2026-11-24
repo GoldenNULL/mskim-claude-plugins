@@ -1,0 +1,14 @@
+diff --git a/app/billing/discount.py b/app/billing/discount.py
+new file mode 100644
+--- /dev/null
++++ b/app/billing/discount.py
+@@ -0,0 +1,9 @@
++def apply_discount(price: int, percent: int) -> int:
++    """Return price after a percent discount. percent must be 0-100."""
++    if percent < 0 or percent >= 100:
++        raise ValueError(f"percent out of range: {percent}")
++    return price - price * percent // 100
++
++
++def total(items) -> int:
++    return sum(apply_discount(i.price, i.discount) for i in items)

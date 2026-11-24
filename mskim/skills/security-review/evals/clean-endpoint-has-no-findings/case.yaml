@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: clean-endpoint-has-no-findings
+expected_outcome: |
+  The new endpoint requires login, filters by the current user's id, uses a parameterized query,
+  and clamps limit to 1..100. The review reports zero findings, says "발견 사항 없음" (or an
+  equivalent explicit no-findings statement), and states what it checked.
+context:
+  scaffold_script: place-files.sh
